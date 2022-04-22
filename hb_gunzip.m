@@ -37,7 +37,7 @@ else
 end
 
 f_igz = [f_i,'.gz'];
-if ~exist(f_o,'file') || overwrite 
+if ~exist(f_o,'file') || overwrite
     if ~exist(f_igz,'file')
         error(['File does not exist: ',f_igz]);
     end
@@ -46,6 +46,18 @@ if ~exist(f_o,'file') || overwrite
     else
         d = gunzip(f_igz,writeroot);
     end
-    assert(strcmp(f_o,d{1}),'[HB] fishy.');
+    d = d{1};
+    if and(...
+            not(isequal(d(1),filesep)),... % unix
+            not(contains(d,':'))...        % windows
+            )         
+        % d, output from gunzip, is relative path of the resulting file;
+        % i.e., file path relative to pwd. That is, for example, if pwd
+        % happens to be fileparts(f_o) when gunzip is called, then d will
+        % not be the file's absolute path. But for following assertion to
+        % work, d should give the files absolute path.
+        d = fullfile(pwd,d);
+    end
+    assert(isequal(f_o,d),'fishy.');
 end
 end
