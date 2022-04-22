@@ -12,8 +12,6 @@ if ~exist('rmConstant','var') || isempty(rmConstant)
 end
 if ~exist('I','var') || isempty(I)
     I = true(1,size(X,n));
-else
-    error('Not yet debuged for using I.')
 end
 
 assert(length(size(X))==2);
@@ -23,7 +21,7 @@ if n==1
     X = X';
 end
 
-% skip some columns
+% skip some data
 Xskip = X(:,not(I));
 X = X(:,I);
 

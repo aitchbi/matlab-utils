@@ -10,8 +10,6 @@ function X = hb_zscore(X,n,I)
 
 if ~exist('I','var') || isempty(I)
     I = true(1,size(X,n));
-else
-    error('not yet debuged for using I.')
 end
 
 assert(length(size(X))==2);

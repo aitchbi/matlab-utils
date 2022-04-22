@@ -24,8 +24,6 @@ if ~exist('Np','var')
 end
 if ~exist('I','var') || isempty(I)
     I = true(1,size(X,2));
-else
-   error('not yet debuged for using I.') 
 end
 
 assert(length(size(X))==2);
