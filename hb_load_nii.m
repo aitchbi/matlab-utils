@@ -1,6 +1,8 @@
 function [v,h] = hb_load_nii(f,headertype)
 %HB_LOAD_NII load nifti volume and header using external software. 
 
+assert(ischar(f),'Enter absolute adress of nifti file.');
+
 if ~exist('headertype','var')
     headertype = 'spm';
 end
