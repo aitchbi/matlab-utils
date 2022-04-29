@@ -1,33 +1,35 @@
-function [v_o,n,f,v_rm] = hb_make_connected(v_i,conn)
-%HB_MAKE_CONNECTED makes input mask (bw image. 2D or 3D) connected.
-% The largest component will be kept and the remainder of voxels/components  
-% will be deleted. 
+function [v_o,n,f,v_rm] = hb_make_connected(v,conn)
+% HB_MAKE_CONNECTED makes input bw array connected; the largest component
+% will be kept and the remainder of pixels/voxels will be deleted.
 % 
 % Inputs:
-%   v_i: bw 2D image or 3D volume. Or spm_vol header.
-%   conn: 4 or 8 for 2D. 6, 18 or 26 for 3D. See bwconncomp.m for details.
+%   v: bw 2D/3D array, or absolute address of a nifti.
+%
+%   conn: 4 or 8 for 2D. 6, 18 or 26 for 3D; see bwconncomp.m for details.
 %
 % Outputs:
-%   v_o: bw image/volume made single connected. 
-%   n: number of voxels removed to make mask single connected.
-%   f: fraction of voxels removed to make mask single connected.
-%   v_rm: bw image/volume showing removed pixels/voxels. 
+%   v_o: connected bw array. 
 %
-% Dependencies: SPM12 toolbox.
+%   n: number of elements removed to make array connected.
+%
+%   f: fraction of voxels removed to make array connected.
+%
+%   v_rm: bw array showing removed elements: v == or(v_o,v_rm); 
 %
 % Hamid Behjat 
 
-if isstruct(v_i)
-    v_i = spm_read_vols(v_i);
+if ischar(v)
+    v = hb_load_nii(v);
 end
 
-vdim = size(v_i);
+vdim = size(v);
 
-CC = bwconncomp(v_i,conn);
+CC = bwconncomp(v,conn);
 
 [~,imax] = max(cellfun(@length,CC.PixelIdxList));
 
 v_o = zeros(vdim);
+
 v_o(CC.PixelIdxList{imax}) = 1;
 
 v_rm = zeros(vdim);
@@ -38,9 +40,9 @@ for n=1:length(CC.PixelIdxList)
     v_rm(CC.PixelIdxList{n}) = 1;
 end
 
-n = nnz(v_rm); %nnz(v_i)-nmax; 
-f = n/nnz(v_i);  
+n = nnz(v_rm);
+f = n/nnz(v);  
 if f>0.05
-    warning('A large number of voxels were removed!'); 
+    warning('A large number of elements were removed!'); 
 end
 end
