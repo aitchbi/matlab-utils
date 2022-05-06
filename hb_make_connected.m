@@ -20,6 +20,12 @@ function [v_o,n,f,v_rm] = hb_make_connected(v,conn)
 
 if ischar(v)
     v = hb_load_nii(v);
+elseif isstruct(v)
+    try
+        v = hb_load_nii(v.fname);
+    catch
+        error('Unrecognized input f.')
+    end
 end
 
 vdim = size(v);
