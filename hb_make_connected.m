@@ -3,7 +3,7 @@ function [v_o,n,f,v_rm] = hb_make_connected(v,conn)
 % will be kept and the remainder of pixels/voxels will be deleted.
 % 
 % Inputs:
-%   v: bw 2D/3D array, or absolute address of a nifti.
+%   v: bw 2D/3D array, or absolute address of a nifti, or spm_vol header. 
 %
 %   conn: 4 or 8 for 2D. 6, 18 or 26 for 3D; see bwconncomp.m for details.
 %
@@ -21,11 +21,7 @@ function [v_o,n,f,v_rm] = hb_make_connected(v,conn)
 if ischar(v)
     v = hb_load_nii(v);
 elseif isstruct(v)
-    try
-        v = hb_load_nii(v.fname);
-    catch
-        error('Unrecognized input f.')
-    end
+    v = hb_load_nii(v.fname);
 end
 
 vdim = size(v);
