@@ -27,7 +27,7 @@ end
 
 switch headertype
     case 'spm'
-        assert(exist('spm_vol.m','file'),'"spm" package not in path.')
+        %assert(exist('spm_vol.m','file'),'"spm" package not in path.')
         h = spm_vol(f);
         v = spm_read_vols(h);
         if DELNONZIP
