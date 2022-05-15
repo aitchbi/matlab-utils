@@ -1,27 +1,23 @@
 function hb_progress(n,N,varargin)
-% HB_PROGRESS display progress.
-%
-%
-%
+% HB_PROGRESS displays progress.
 %
 % Hamid Behjat 
 
-control_params = {
-    'init',0,...
-    'l',numel(num2str(N)),...
-    'tag',''};
+d = inputParser;
+addParameter(d,'init',0);
+addParameter(d,'tag','');
+addParameter(d,'l',length(num2str(N)));
+parse(d,varargin{:});
+opts = d.Results;
 
-argselectAssign(control_params);
-argselectCheck(control_params,varargin);
-argselectAssign(varargin);
-
-if n==1 || init
-    if isempty(tag)
+if n==1 || opts.init
+    if isempty(opts.tag)
         fprintf(['\n','progress: ']);
     else
-        fprintf(['\n',tag]);
+        fprintf(['\n',opts.tag]);
     end
 else
-    fprintf(repmat('\b',1,2*l+1),n);
+    fprintf(repmat('\b',1,2*opts.l+1),n);
 end
-eval(['fprintf(''%-',num2str(l),'d/%-',num2str(l),'d'',n,N)']);
+l = num2str(opts.l);
+eval(['fprintf(''%-',l,'d/%-',l,'d'',n,N)']);
