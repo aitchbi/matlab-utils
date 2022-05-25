@@ -2,8 +2,8 @@ function [v,h] = hb_nii_load(f,varargin)
 %HB_NII_LOAD load nifti volume and header using external software. 
 
 d = inputParser;
-addParameter('HeaderType','spm');
-addParameter('IndicesToLoad',[]);
+addParameter(d,'HeaderType','spm');
+addParameter(d,'IndicesToLoad',[]);
 parse(d,varargin{:});
 opts = d.Results;
 
