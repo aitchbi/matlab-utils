@@ -19,9 +19,9 @@ function [v_o,n,f,v_rm] = hb_make_connected(v,conn)
 % Hamid Behjat 
 
 if ischar(v)
-    v = hb_load_nii(v);
+    v = hb_nii_load(v);
 elseif isstruct(v)
-    v = hb_load_nii(v.fname);
+    v = hb_nii_load(v.fname);
 end
 
 vdim = size(v);
