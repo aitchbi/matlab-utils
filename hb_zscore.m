@@ -1,8 +1,9 @@
 function X = hb_zscore(X,n,I)
-%HB_ZSCORE z-scores each row (n=1) or column (n=2) of matrix X, chunk by
-% chunk if too many rows or columns, respectively.  
+%HB_ZSCORE z-scores input matrix X; either the rows or columns.
 %
 % Inputs:
+%   X: a matrix.
+%   n: n=1: z-score rows, n=2: z-score columns.
 %   I: logical vector of length size(X,2), specifying which nodes to
 %   operate on and which ones to skip. 
 %
