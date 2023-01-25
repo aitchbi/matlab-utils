@@ -4,7 +4,7 @@ function f = hb_get_ctxgmwm_boudary(d_fsmri,SaveAuxFiles)
 % superficial WM voxels, and the inner layer voxels of cerebral cortex. The
 % function works on FreeSurfer extracted files.
 %
-% Input:
+% Inputs:
 %
 %   d_fsmri: absolute address of FreeSurfer 'mri' folder for a subject.
 %
