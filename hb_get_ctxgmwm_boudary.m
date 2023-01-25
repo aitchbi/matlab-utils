@@ -68,7 +68,7 @@ h4 = hh;
 
 h4.fname = strrep(f_rb,'ribbon','cerebrum_gm_wmborder');
 
-spm_write_vol(h,v4);
+spm_write_vol(h4,v4);
 
 %-WM border with GM.
 v5 = and(v3,imdilate(v1,d));
@@ -91,22 +91,32 @@ end
 %==========================================================================
 function chk_exist(f_rb,f_aa)
 
-t1 = sprintf('is missing. \n. First, in Terminal, run: mri_convert');
-
-t2 = sprintf('\n. Then come back and call this function.');
+t = sprintf([
+    'is missing. \n. To get it, in Terminal, ',...
+    'cd to subject''s FreeSurfer''s mri folder. \n',...
+    '. Then run: mri_convert'
+    ]);
 
 if ~exist(f_rb,'file')
     
     assert(exist(strrep(f_rb,'.nii','.mgz'),'file'), 'ribbon.mgz missing');
     
-    error('. File: ribbon.nii %s ribbon.mgz ribbon.nii %s',t1,t2);
+    d = 'ribbon';
+    
+    fprintf('. File: %s.nii %s %s.mgz %s.nii \n---------------\n',d,t,d,d);
+    
+    error('ribbon.nii missing');
 end
 
 if ~exist(f_aa,'file')
     
     assert(exist(strrep(f_aa,'.nii','.mgz'),'file'), 'ribbon.mgz missing');
     
-    error('. File: aparc+aseg.nii %s aparc+aseg.mgz aparc+aseg.nii %s',t1,t2);
+    d = 'aparc+aseg';
+    
+    fprintf('. File: %s.nii %s %s.mgz %s.nii \n---------------\n',d,t,d,d);
+    
+    error('aparc+aseg.nii');
 end
 end
 
