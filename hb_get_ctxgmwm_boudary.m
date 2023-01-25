@@ -17,8 +17,7 @@ function f = hb_get_ctxgmwm_boudary(d_fsmri)
 %
 % Requirements:
 %   SPM12 software, to read/write nifti files.
-%   1. Download from https://www.fil.ion.ucl.ac.uk/spm/software/spm12
-%   2. Addpath the main folder. 
+%   https://www.fil.ion.ucl.ac.uk/spm/software/spm12
 % 
 % Hamid Behjat
 
@@ -103,7 +102,7 @@ if ~exist(f_rb,'file')
     
     d = 'ribbon';
     
-    fprintf('. File: %s.nii %s %s.mgz %s.nii \n---------------\n',d,t,d,d);
+    fprintf('\n. File: %s.nii %s %s.mgz %s.nii \n--------------\n',d,t,d,d);
     
     error('ribbon.nii missing');
 end
@@ -114,9 +113,21 @@ if ~exist(f_aa,'file')
     
     d = 'aparc+aseg';
     
-    fprintf('. File: %s.nii %s %s.mgz %s.nii \n---------------\n',d,t,d,d);
+    fprintf('\n. File: %s.nii %s %s.mgz %s.nii \n--------------\n',d,t,d,d);
     
     error('aparc+aseg.nii');
+end
+
+if ~exist('spm_vol.m','file')
+    
+    fprintf('\n. SPM12 software not in path.\n');
+    
+    fprintf([
+        '. Addpath if available, otherwise, first download from here: ',...
+        'https://www.fil.ion.ucl.ac.uk/spm/software/spm12\n-------------\n'
+        ]);
+    
+     error('SPM12 software not in path.');
 end
 end
 
