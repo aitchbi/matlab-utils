@@ -42,12 +42,10 @@ function f_o = hb_nii_resample(f_i,res_o,varargin)
 % Hamid Behjat
 
 d = inputParser;
-addParameter('Method','approach1');
-addParameter('InterpOrder',1);
-addParameter('MemorySafe',true);
-addParameter('OutputFile',true);
-addParameter(d,'tag','');
-addParameter(d,'l',length(num2str(N)));
+addParameter(d,'Method','approach1');
+addParameter(d,'InterpOrder',1);
+addParameter(d,'MemorySafe',true);
+addParameter(d,'OutputFile',[]);
 parse(d,varargin{:});
 opts = d.Results;
 
