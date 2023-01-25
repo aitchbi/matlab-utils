@@ -15,6 +15,11 @@ function f = hb_get_ctxgmwm_boudary(d_fsmri)
 %   f.gm_wmborder: cerebral cortex GM border with WM
 %   f.wm_gmborder: WM border with cerebral cortex
 %
+% Requirements:
+%   SPM12 software, to read/write nifti files.
+%   1. Download from https://www.fil.ion.ucl.ac.uk/spm/software/spm12
+%   2. Addpath the main folder. 
+% 
 % Hamid Behjat
 
 f_rb = fullfile(d_fsmri,'ribbon.nii');     
