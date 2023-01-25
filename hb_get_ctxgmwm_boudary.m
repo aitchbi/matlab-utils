@@ -1,25 +1,37 @@
-function f = hb_get_ctxgmwm_boudary(d_fsmri)
+function f = hb_get_ctxgmwm_boudary(d_fsmri,SaveAuxFiles)
 % HB_GET_CTXGMWM_BOUNDARY extracts touching gray matter (GM) and white
 % matter (WM) voxels at the boundary of cerebral cortex, that is, the most
 % superficial WM voxels, and the inner layer voxels of cerebral cortex. The
 % function works on FreeSurfer extracted files.
 %
 % Input:
+%
 %   d_fsmri: absolute address of FreeSurfer 'mri' folder for a subject.
 %
+%   SaveAuxFiles: (optional) 3 auxiliary files are save:
+%   1. cerebral cortex GM   
+%   2. sub-cortical cerebral GM
+%   3. cerebral WM
+%
 % Output:
+%
 %   f: absolute address of saved nifti volumes,
-%   f.gm_ctx     : cerebral cortex GM
-%   f.gm_subctx  : sub-cortical cerebral GM
-%   f.wm_cerebrum: cerebral WM
 %   f.gm_wmborder: cerebral cortex GM border with WM
 %   f.wm_gmborder: WM border with cerebral cortex
+%   f.gm_ctx     : cerebral cortex GM (optionally saved)
+%   f.gm_subctx  : sub-cortical cerebral GM (optionally saved)
+%   f.wm_cerebrum: cerebral WM (optionally saved)
 %
 % Requirements:
+%
 %   SPM12 software, to read/write nifti files.
 %   https://www.fil.ion.ucl.ac.uk/spm/software/spm12
 % 
 % Hamid Behjat
+
+if ~exist('SaveAuxFiles','var')
+    SaveAuxFiles = false;
+end
 
 f_rb = fullfile(d_fsmri,'ribbon.nii');     
 
@@ -48,14 +60,16 @@ hh.dt = [spm_type('uint8'),0];
 %-Extract cortex GM.
 v1 = ismember(v_rb,[3,42]);
 
-h1 = hh;
-
-h1.fname = strrep(f_rb,'ribbon','cerebrum_gm_ctx');
-
-spm_write_vol(h1,v1);
+if SaveAuxFiles
+    h1 = hh;
+    
+    h1.fname = strrep(f_rb,'ribbon','cerebrum_gm_ctx');
+    
+    spm_write_vol(h1,v1);
+end
 
 %-Extract cerebral WM.
-[v3,h3,h2] = get_wm(v_aa,v1,f_rb,hh);
+[v3,h3,h2] = get_wm(v_aa,v1,f_rb,hh,SaveAuxFiles);
 
 %-Strutural element for defining border voxels.
 d = ones(3,3,3);
@@ -80,11 +94,18 @@ spm_write_vol(h5,v5);
 
 %-Files names.
 f = struct;
-f.gm_ctx      = h1.fname; % cerebral cortex GM
-f.gm_subctx   = h2.fname; % sub-cortical cerebral GM
-f.wm_cerebrum = h3.fname; % cerebral WM
+
 f.gm_wmborder = h4.fname; % cerebral cortex GM border with WM
+
 f.wm_gmborder = h5.fname; % WM border with cerebral cortex
+
+if SaveAuxFiles
+    f.gm_ctx      = h1.fname; % cerebral cortex GM
+
+    f.gm_subctx   = h2.fname; % sub-cortical cerebral GM
+    
+    f.wm_cerebrum = h3.fname; % cerebral WM
+end
 end
 
 %==========================================================================
@@ -132,7 +153,7 @@ end
 end
 
 %==========================================================================
-function [v3,h3,h2] = get_wm(v_aa,v1,f_rb,hh)
+function [v3,h3,h2] = get_wm(v_aa,v1,f_rb,hh,SaveAuxFiles)
 
 %-GM sub cortex.
 d1 = [9:13,17:20,26:28, 48:56, 58:60];       % sub-cortical cerebral GM
@@ -170,19 +191,22 @@ v = or(v,v_ua);
 
 v3 = make_connected(v);
 
-h3 = hh;
-
-h3.fname = strrep(f_rb,'ribbon','cerebrum_wm');
-
-spm_write_vol(h3,v3);
-
-h2 = hh;
-
-h2.fname = strrep(f_rb,'ribbon','cerebrum_gm_subctx');
-
-spm_write_vol(h2,v2);
-
-
+if SaveAuxFiles
+    h3 = hh;
+    
+    h3.fname = strrep(f_rb,'ribbon','cerebrum_wm');
+    
+    spm_write_vol(h3,v3);
+    
+    h2 = hh;
+    
+    h2.fname = strrep(f_rb,'ribbon','cerebrum_gm_subctx');
+    
+    spm_write_vol(h2,v2);
+else
+    h2 = [];
+    h3 = [];
+end
 end
 
 %==========================================================================
@@ -348,5 +372,3 @@ end
 % 84  Right-F1
 %
 %--------------------------------------------------------------------------
-
-
