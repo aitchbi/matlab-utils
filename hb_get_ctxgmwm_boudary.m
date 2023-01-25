@@ -187,6 +187,8 @@ v = zeros(size(v));
 v(CC.PixelIdxList{imax}) = 1;
 end
 
+%==========================================================================
+%
 % NOTE1--------------------------------------------------------------------
 % There is notable mismatch between the definition of cerebral cortex given
 % by FreeSurfer's ribbon and aparc+aseg files.
