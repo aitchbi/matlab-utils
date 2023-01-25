@@ -8,10 +8,11 @@ function f = hb_get_ctxgmwm_boudary(d_fsmri,SaveAuxFiles)
 %
 %   d_fsmri: absolute address of FreeSurfer 'mri' folder for a subject.
 %
-%   SaveAuxFiles: (optional) 3 auxiliary files are save:
+%   SaveAuxFiles: (optional) if set to true, 3 auxiliary files saved:
 %   1. cerebral cortex GM   
 %   2. sub-cortical cerebral GM
 %   3. cerebral WM
+%   default: false. 
 %
 % Output:
 %
