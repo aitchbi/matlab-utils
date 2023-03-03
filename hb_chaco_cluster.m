@@ -17,11 +17,11 @@ function [C,d1,d2] = hb_chaco_cluster(A,indices,ref,path_chaco,saveDir,N,pV,maxD
 %   C: clustered volume; file address.
 %
 % Dependencies: 
-% hb_chacoA.m
-% hb_chacoOutput2Vol.m
-% hb_chacoSanityCheck.m
-% hb_progress.m
-% package: spm12
+%   hb_chaco_graph.m
+%   hb_chaco2Vol.m
+%   SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12)
+%
+% Note: SPM12 used only for transforming Chaco output clusters to volume.
 %
 % Hamid Behjat 
 
@@ -55,7 +55,7 @@ f_clustN = strrep(f_clustT,'.txt','.nii');                             % chaco o
 
 % Chaco inputs.
 fprintf('\n.Preparing Chaco inputs.. ')
-hb_chacoA(A,f_graph,maxDegree); % graph in Chaco format.
+hb_chaco_graph(A,f_graph,maxDegree); % graph in Chaco format.
 d = fopen(f_chaco,'wt'); 
 fprintf(d,[f_graph,'\n']);
 fprintf(d,[f_clustT,'\n']);
@@ -75,7 +75,7 @@ fprintf('.done.')
 
 % Tranform Chaco output to volume. 
 fprintf('\n.Transforming Chaco output to .nii.. ')
-d = hb_chacoOutput2Vol(ref,f_clustT,N,f_clustN,indices,chacoSets,[],pV);
+d = hb_chaco2vol(ref,f_clustT,N,f_clustN,indices,chacoSets,[],pV);
 sanityCheck(d,N,A);
 fprintf('done.')
 
