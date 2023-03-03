@@ -1,10 +1,11 @@
-function hb_chacoA(A,txtFileName,maxDegree,sS)
-%  Creates .txt file for input to Chaco.
-%  Each row i shows the adjacent vertices of vertex i
-%  The .txt file will be save in the given address: txtFile_graph.
+function hb_chaco_graph(A,txtFileName,maxDegree,sS)
+% HB_CHACO_GRAPH appends a Chaco .txt input file with information about the
+% graph, in particular, the graph adjacency matrix. Each row i shows the
+% adjacent vertices of vertex i. The .txt file will be save in the given
+% address: txtFile_graph.
 %
 % Inputs:
-%   A: graph adjacency matrix; can be in two forms:
+%   A: graph adjacency matrix; can be in two forms: binary or weighted. 
 %   outputTxt: full address of output .txt to be saved. 
 %   maxDegree: (opt) max nodal degree; e.g. 26, 98, 124. 
 %
