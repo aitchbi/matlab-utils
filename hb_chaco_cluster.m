@@ -11,7 +11,6 @@ function [C,d1,d2] = hb_chaco_cluster(A,indices,ref,path_chaco,saveDir,N,pV,maxD
 %   N: number of clusters.
 %   pV: (opt) volume of parcels; N is determined. 
 %   maxDegree: (opt) max nodal degree in graph; for speed up.
-%   showProgress: (opt)
 %
 % Outputs: 
 %   C: clustered volume; file address.
