@@ -25,11 +25,15 @@ function f_o = hb_reslice_vol(f_i,f_r,interp,f_o,silentMode)
 % Outputs:
 %   f_o: resliced file; full path. 
 % 
-% Examples:
-% h_o = hb_reslice_vol(f_i,f_r);
-% hb_reslice_vol(f_i,f_r,1,f_o);
 %
-% See also: hb_resample_vol.m
+% Example usage:
+%   h_o = hb_reslice_vol(f_i,f_r);
+%   hb_reslice_vol(f_i,f_r,1,f_o);
+%
+%
+% Related functions:
+%   hb_resample_vol.m
+%
 %
 % Hamid Behjat
 
