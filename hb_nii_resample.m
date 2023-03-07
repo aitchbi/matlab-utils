@@ -3,8 +3,6 @@ function f_o = hb_nii_resample(f_i,res_o,varargin)
 % The new resampled volume is written to the directory of the input volume,
 % unless name of output file is specified.
 %
-% Uses: spm_sample_vol.m, spm_slice_vol.m
-%
 % Inputs:
 %   f_i: input file name, full address *.nii or *nii.gz, spm_vol header.
 %
@@ -39,7 +37,13 @@ function f_o = hb_nii_resample(f_i,res_o,varargin)
 % Example:
 % f_o = hb_nii_resample(f_i,1.25);
 %
-% See also: hb_nii_reslice.m
+% Dependencies: 
+%   From SPM12: 
+%     spm_sample_vol.m
+%     spm_slice_vol.m
+%
+% See also: 
+%   hb_nii_reslice.m
 %
 % Hamid Behjat
 
@@ -175,7 +179,7 @@ switch opts.Method
         
 end
 
-% Return file in desired format.
+%-Return file in desired format.
 d = h_o.fname;
 switch OutPutFileFormat
     case 'nii'
@@ -186,6 +190,7 @@ switch OutPutFileFormat
         delete(d);
 end
 
+%-Cleanup.
 if CleanUpInputNii
     delete(f_i);
 end
