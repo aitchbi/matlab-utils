@@ -6,7 +6,7 @@ function f_o = hb_nii_resample(f_i,res_o,varargin)
 % Uses: spm_sample_vol.m, spm_slice_vol.m
 %
 % Inputs:
-%   f_i: input file name, full address. Or spm_vol header.
+%   f_i: input file name, full address *.nii or *nii.gz, spm_vol header.
 %
 %   res_o: resolution to resample f_i, in mm. Scalar value for isotropic
 %   resolution voxels, or 3x1 vector for non-isotropic resolution.
@@ -26,7 +26,9 @@ function f_o = hb_nii_resample(f_i,res_o,varargin)
 %   'MemroySafe': logical; applicable to 'approach1'. 
 %
 % Outputs:
-%   f_o: output file name.
+%   f_o: absolute address of output file to be saved (.nii or .nii.gz
+%   fromat). If not given, the name will be generated based on input file
+%   name, and the file will have the same format as that the input file.
 %
 % NOTES:
 % approach1 slower than approach1, if memroySafe=true. In general,
@@ -53,9 +55,18 @@ assert(ischar('f_i'),'f_i: input file absolute address.')
 
 try
     h_i = spm_vol(f_i);
+    InputFileType = 'nii';
 catch
-    f_igz = [f_i,'.gz'];
+    if contains(f_i,'.gz')
+        f_igz = f_i;
+        f_i = strrep(f_i,'.gz','');
+        InputFileType = 'niigz';
+    else
+        f_igz = [f_i,'.gz'];
+        InputFileType = 'nii';
+    end
     gunzip(f_igz);
+    
     h_i = spm_vol(f_i);
 end
 
@@ -88,8 +99,23 @@ if isempty(opts.OutputFile)
     end
     [p_i,n_i] = fileparts(f_i);
     f_o = fullfile(p_i,[n_i,tag,'.nii']);
+    
+    % ouput file format same as input
+    switch InputFileType
+        case 'nii'
+            OutPutFileFormat = 'nii';
+        case 'niigz'
+            OutPutFileFormat = 'niigz';
+    end
+    
 else
-   f_o = opts.OutputFile;
+    if contains(opts.OutputFile,'.gz')
+        OutPutFileFormat = 'niigz';
+        f_o = strrep(opts.OutputFile,'.gz','');
+    else
+        OutPutFileFormat = 'nii';
+        f_o = opts.OutputFile;
+    end
 end
 
 h_o = struct();
@@ -148,7 +174,16 @@ switch opts.Method
         
 end
 
-f_o = h_o.fname;
+% Return file in desired format.
+d = h_o.fname;
+switch OutPutFileFormat
+    case 'nii'
+        f_o = d;
+    case 'niigz'
+        f_o = [d,'.gz'];
+        gzip(d);
+        delete(d);
+end
 
 % NOTE 1 ------------------------------------------------------------------
 % pinfo[1] is the scaling factor. pinfo[2] is the offset value. By default,
