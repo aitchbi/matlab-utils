@@ -5,8 +5,13 @@ function f_o = hb_reslice_vol(f_i,f_r,interp,f_o,silentMode)
 % volume and the reference volume. The new resampled volume is written to
 % the directory of the input volume, unless name of output file specified.
 %
-% Uses: spm_run_coreg.m, spm_reslice.m, spm_run_coreg_hb.m,
-% spm_reslice_hb.m
+% Dependencies:
+%   hb_gunzip.m
+%   spm_run_coreg_hb.m
+%   spm_reslice_hb.m
+%   From SPM12:
+%       spm_run_coreg.m
+%       spm_reslice.m
 %
 % Inputs:
 %   f_i: file to reslice; full path.
@@ -25,11 +30,6 @@ function f_o = hb_reslice_vol(f_i,f_r,interp,f_o,silentMode)
 % hb_reslice_vol(f_i,f_r,1,f_o);
 %
 % See also: hb_resample_vol.m
-%
-% Dependencies: 
-%   hb_gunzip.m
-%   spm_run_coreg_hb.m
-%   spm_reslice_hb.m
 %
 % Hamid Behjat
 
