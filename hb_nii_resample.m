@@ -56,6 +56,7 @@ assert(ischar('f_i'),'f_i: input file absolute address.')
 try
     h_i = spm_vol(f_i);
     InputFileType = 'nii';
+    CleanUpInputNii = false;
 catch
     if contains(f_i,'.gz')
         f_igz = f_i;
@@ -66,7 +67,7 @@ catch
         InputFileType = 'nii';
     end
     gunzip(f_igz);
-    
+    CleanUpInputNii = true;
     h_i = spm_vol(f_i);
 end
 
@@ -183,6 +184,10 @@ switch OutPutFileFormat
         f_o = [d,'.gz'];
         gzip(d);
         delete(d);
+end
+
+if CleanUpInputNii
+    delete(f_i);
 end
 
 % NOTE 1 ------------------------------------------------------------------
