@@ -155,7 +155,7 @@ for iV = 1:Nv
     end
     spm_write_vol(h_o,v_o);
     
-    if opts.Verbose
+    if opts.Verbose && Nv>1
         showprgs(iV,Nv);
     end
 end
