@@ -1,12 +1,12 @@
-function f_o = hb_nii_resample(f_i,res_o,varargin)
+function f_o = hb_nii_resample(f_i,res,varargin)
 %HB_NII_RESAMPLE Resamples an input nifti volume to a new resolution. 
 % The new resampled volume is written to the directory of the input volume,
 % unless name of output file is specified.
 %
 % Inputs:
-%   f_i: input file name, full address *.nii or *nii.gz, spm_vol header.
+%   f_i: input file name, full address *.nii or *nii.gz.
 %
-%   res_o: resolution to resample f_i, in mm. Scalar value for isotropic
+%   res: resolution to resample f_i, in mm. Scalar value for isotropic
 %   resolution voxels, or 3x1 vector for non-isotropic resolution.
 %
 %   Name-Value Pair Arguments: 
@@ -57,32 +57,33 @@ opts = d.Results;
 
 assert(ischar('f_i'),'f_i: input file absolute address.')
 
-try
-    h_i = spm_vol(f_i);
+if contains(f_i,'.gz')
+    f_igz = f_i;
+    f_i = strrep(f_i,'.gz','');
+    InputFileType = 'niigz';
+    CleanUpInputNii = true;
+    gunzip(f_igz);
+elseif contains(f_i,'.nii')
     InputFileType = 'nii';
     CleanUpInputNii = false;
-catch
-    if contains(f_i,'.gz')
-        f_igz = f_i;
-        f_i = strrep(f_i,'.gz','');
-        InputFileType = 'niigz';
-    else
-        f_igz = [f_i,'.gz'];
-        InputFileType = 'nii';
-    end
-    gunzip(f_igz);
-    CleanUpInputNii = true;
-    h_i = spm_vol(f_i);
+else
+   error('Unknown input file format.') 
 end
+
+h_i = spm_vol(f_i);
 
 d = abs(diag(h_i.mat));
+
+assert(nnz(d)==4,...
+    'non-conventional .mat; use instead e.g. FreeSurfer mri_convert');
+
 res_i = [d(1);d(2);d(3)];
 
-if length(res_o)==1
-    res_o = repmat(res_o,3,1);
+if length(res)==1
+    res = repmat(res,3,1);
 end
 
-scl = res_o./res_i;
+scl = res./res_i;
 
 if any(scl<1)
     % approach1/2 can only handle downsampling.
@@ -96,10 +97,10 @@ yy = 1:h_o_dim(2);
 zz = 1:h_o_dim(3);
 
 if isempty(opts.OutputFile)
-    if ~isequal(res_o(1),res_o(2),res_o(3))
+    if ~isequal(res(1),res(2),res(3))
         tag = '_hbResampled';
     else
-        d = sprintf('%04d',res_o(1)*1e3);
+        d = sprintf('%04d',res(1)*1e3);
         tag = ['_res',d];
     end
     [p_i,n_i] = fileparts(f_i);
@@ -126,7 +127,7 @@ end
 h_o = struct();
 h_o.fname = f_o;
 h_o.dim = h_o_dim;
-d = [res_o(:);1].*sign(diag(h_i.mat));
+d = [res(:);1].*sign(diag(h_i.mat));
 h_o.mat = h_i.mat-diag(diag(h_i.mat))+diag(d);
 h_o.dt = h_i.dt;
 if any(h_i.pinfo(1:2)~=[1;0])
