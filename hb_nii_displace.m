@@ -22,6 +22,11 @@ function hb_nii_displace(f_s,f_d,f_r,f_o,varargin)
 %
 %   Verbose: logical; show progress? (default: true)
 %
+%   CopyAllFilesToTempDir: logical; (default: false) This options allows
+%   working with input files that are located in read-only directores;
+%   files will first be duplicated into a temp directory, worked on, and
+%   then cleaned up.
+%   
 % Dependencies:
 %   spm12, to read/write nifti files.
 %   https://www.fil.ion.ucl.ac.uk/spm/software/spm12
@@ -32,6 +37,8 @@ function hb_nii_displace(f_s,f_d,f_r,f_o,varargin)
 p = inputParser;
 addParameter(p,'Verbose',true);
 addParameter(p,'WhichVols',[]);
+addParameter(p,'InputFilesInReadOnlyDir',false);
+
 parse(p,varargin{:});
 opts = p.Results;
 
@@ -44,8 +51,15 @@ elseif endsWith(f_o,'.gz')
     GzipOutput = true;
     f_o = strrep(f_o,'.gz','');
 end
-TWD = fullfile(TWD,sprintf('hb_nii_displace_tmpfolder_%s',get_randtag));
+TWD = fullfile(TWD,sprintf('hb_nii_displace_%s',get_randtag));
 [~,~] = mkdir(TWD);
+
+% copy files to TWD
+if opts.InputFilesInReadOnlyDir
+    f_s = cp2twd(f_s, TWD);
+    f_r = cp2twd(f_r, TWD);
+    f_d = cp2twd(f_d, TWD);
+end
 
 % prepare source file
 f_s = prep_src(f_s,TWD);
@@ -133,11 +147,10 @@ for iV = 1:Nv
         h_o = struct;
         if not(isempty(TWD))
             [~,n,e] = fileparts(f_o);
-            d = true;
-            while d % NOTE 1
-                f_o_tmp = fullfile(TWD,[n,get_randtag,e]);
+            while 1 
+                f_o_tmp = fullfile(TWD,[n,'_',get_randtag,e]);
                 if ~exist(f_o_tmp,'file')
-                    d = false;
+                    break;
                 end
             end
             h_o.fname = f_o_tmp;
@@ -227,24 +240,11 @@ if not(GZIPFILE)
 end
 
 % copy fie to TWD
-if GZIPFILE
-    d = strrep(f,'.gz',''); % drop '.gz'
-    [~,n,e] = fileparts(d);
-    e = [e,'.gz'];          % put back
+if isequal(fileparts(f),TWD)
+    f_tmp = f;
 else
-    [~,n,e] = fileparts(f);
+    f_tmp = cp2twd(f,TWD);
 end
-d = true;
-while d % NOTE
-    f_tmp = fullfile(TWD,[n,get_randtag,e]);
-    if ~exist(f_tmp,'file')
-        d = false;
-    end
-end
-copyfile(f,f_tmp);
-
-% NOTE: Random tag makes the procedure more robust e.g. when doing parallel
-% runs on files with same name.
 
 if GZIPFILE
     gunzip(f_tmp);
@@ -254,16 +254,17 @@ end
 end
 
 %==========================================================================
-function t = get_randtag
-t = sprintf('_tmp%d',round(rand*1e12));
+function f2 = cp2twd(f1,TWD)
+d = strrep(f1, fileparts(f1), TWD);
+while 1 % NOTE
+    f2 = strrep(d, '.nii', ['_', get_randtag, '.nii']);
+    if ~exist(f2,'file')
+        break
+    end
 end
-
-%==========================================================================
-function f = handlegzip(f)
-if endsWith(f,'.gz')
-    gunzip(f);
-    f = strrep(f,'.gz','');
-end
+sts = copyfile(f1,f2);
+assert(sts==1);
+% NOTE: random tag for robustness, e.g. in parallel runs.
 end
 
 %==========================================================================
@@ -276,4 +277,18 @@ else
 end
 eval(['fprintf(''%-',num2str(l),'d/%-',num2str(l),'d'',n,N)'])
 end
+
+%==========================================================================
+function f = handlegzip(f)
+if endsWith(f,'.gz')
+    gunzip(f);
+    f = strrep(f,'.gz','');
+end
+end
+
+%==========================================================================
+function t = get_randtag
+t = sprintf('tmp%d',round(rand*1e12));
+end
+
 
