@@ -98,17 +98,12 @@ job.roptions.prefix = 'tmp_';
 
 if diff_io
     job.roptions.writedirectory = fileparts(f_o);
-    if silentMode
-        out = spm_run_coreg_hb(job,true);
-    else
-        out = spm_run_coreg_hb(job);
-    end
+end
+
+if silentMode
+    out = spm_run_coreg_hb(job,true);
 else
-    if silentMode
-        out = spm_run_coreg_hb(job,true);
-    else
-        out = spm_run_coreg_hb(job);
-    end
+    out = spm_run_coreg_hb(job);
 end
 
 f_tmp = strsplit(out.rfiles{1},',');
