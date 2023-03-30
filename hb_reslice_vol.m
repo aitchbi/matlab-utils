@@ -107,7 +107,7 @@ else
     if silentMode
         out = spm_run_coreg_hb(job,true);
     else
-        out = spm_run_coreg(job);
+        out = spm_run_coreg_hb(job);
     end
 end
 
