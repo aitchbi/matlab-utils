@@ -23,11 +23,9 @@ function f_o = hb_reslice_vol(f_i,f_r,interp,f_o,silentMode)
 %   hb_reslice_vol(f_i,f_r,1,f_o);
 %
 % Dependencies:
-%   hb_gunzip.m
 %   spm_run_coreg_hb.m
 %   spm_reslice_hb.m
-%   spm_run_coreg.m (SPM12)
-%   spm_reslice.m (SPM12)
+%   SPM12: https://www.fil.ion.ucl.ac.uk/spm/software/spm12
 %
 % See also:
 %   hb_resample_vol.m
@@ -56,7 +54,7 @@ if isstruct(f_i)
 end
 
 if ~exist(f_r,'file') 
-    hb_gunzip(f_r);
+    handlegzip(f_r);
     cleanup_r = true;
 else
     cleanup_r = false;
@@ -79,7 +77,7 @@ else
 end
 
 if ~exist(f_i,'file') 
-    hb_gunzip(f_i);
+    handlegzip(f_i);
     cleanup_i = true;
 else
     cleanup_i = false;
@@ -116,3 +114,23 @@ end
 if cleanup_r
     delete(f_r);
 end
+
+end
+
+%==========================================================================
+function f = handlegzip(f)
+if contains(f,'.gz')
+    f_gz = f;
+    f = strrep(f,'.gz','');
+else
+    f_gz = [f,'.gz'];
+end
+if ~exist(f,'file')
+    assert(...
+        logical(exist(f_gz,'file')),...
+        sprintf('GZIP file does not exist: %s',f_gz));
+    gunzip(f_gz);
+end
+end
+
+
