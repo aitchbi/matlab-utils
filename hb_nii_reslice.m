@@ -29,6 +29,31 @@ function f_o = hb_nii_reslice(f_i,f_r,interp,f_o,SilentMode,FilesInReadOnlyDir)
 %   hb_nii_reslice(f_i,f_r,1,[],1);
 %   hb_nii_reslice(f_i,f_r,1,f_o,[],[0 1]);
 %
+% Example scenarios: 
+%
+% [Exp-1] if both input files (f_i and f_r) are in writable directory: 
+%
+%         hb_nii_reslice(f_i, f_r, [], f_o);
+%
+% [Exp-2] if f_i in writable directory but f_r in read-only directory: 
+%          
+%         hb_nii_reslice(f_i, f_r, [], f_o, [], [0 1]);
+%
+% [Exp-3] if both f_i and f_r in read-only directory: 
+%
+%         hb_nii_reslice(f_i, f_r, [], f_o, [], [1 1]);
+%
+% [Exp-4] auto-naming of output file (only if f_i in writable directory): 
+%
+%         f_o = hb_nii_reslice(f_i, f_r, [], [], [], [0 1]);
+%
+% Cautionary note on Example [Exp-4]: the auto-naming of output is based on
+% two things: i) name of f_i, ii) the voxel resolution of f_r. Therefore,
+% for an input f_i, if running the function more than once for two or more
+% different f_r that have same voxel resolution (no matter if their names
+% differ), output files will be overwritten because the auto-generated
+% names will be the same.
+%
 % Dependencies:
 %   SPM12: https://www.fil.ion.ucl.ac.uk/spm/software/spm12
 %   spm_run_coreg_hb.m [*]
