@@ -130,10 +130,15 @@ h_o.dim = h_o_dim;
 d = [res(:);1].*sign(diag(h_i.mat));
 h_o.mat = h_i.mat-diag(diag(h_i.mat))+diag(d);
 h_o.dt = h_i.dt;
-if any(h_i.pinfo(1:2)~=[1;0])
-    error('fishy. See NOTE 1.'); 
+if 1
+    % safest to keep pinfo as it is
+    h_o.pinfo = h_i.pinfo;
+else
+    if any(h_i.pinfo(1:2)~=[1;0]) %#ok<UNRCH>
+        error('fishy. See NOTE 1.');
+    end
+    h_o.pinfo = h_i.pinfo;
 end
-h_o.pinfo = h_i.pinfo;
 d = dbstack;
 h_o.descrip = [h_i.descrip,...
     ' - resampled with: ',...
