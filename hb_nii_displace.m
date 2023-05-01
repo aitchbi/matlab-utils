@@ -204,11 +204,13 @@ if not(exist(f,'file'))
     if endsWith(f,'.nii')
         % maybe gzip version exists?
         
+        fnii = f;
+        
         f = strrep(f,'.nii','.nii.gz');
         
         assert(...
             logical(exist(f,'file')),...
-            sprintf('Input file missing: %s',f));
+            sprintf('Input file missing: %s',fnii));
         
     elseif endsWith(f,'.gz')
         % maybe non-gzip version exists?
