@@ -7,7 +7,7 @@ addParameter(d,'IndicesToLoad',[]);
 parse(d,varargin{:});
 opts = d.Results;
 
-assert(ischar(f),'Enter absolute adress of nifti file.');
+assert(ischar(f),'Enter absolute address of nifti file.');
 
 if contains(f,'.gz')
     gunzip(f);
