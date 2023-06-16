@@ -59,6 +59,12 @@ function sts = chkmatch(f1,f2)
 tol = 1e-6;
 h1 = spm_vol(f1);
 h2 = spm_vol(f2);
+if length(h1)>1
+    h1 = h1(1);
+end
+if length(h2)>1
+    h2 = h2(1);
+end
 d1 = isequal(h1.dim, h2.dim);
 d2 = all(all(abs(h1.mat-h2.mat)<tol));
 if d1 && d2
