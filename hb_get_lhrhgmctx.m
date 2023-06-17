@@ -37,6 +37,24 @@ addParameter(d,'OverwriteExistingFile',false);
 parse(d,varargin{:});
 opts = d.Results;
 
+%-GM cortex mask.
+[f_o, OFE, N_gmctx, f_gmctx, TmpGmCtx] = getgmctx(G, opts);
+
+%-LHRH GM cortex mask.
+[v_gmctxlhrh, UniqueLabels] = getgmctxlhrh(G, opts, f_o, OFE, N_gmctx);
+
+%-Update G.
+G = updateG(G, v_gmctxlhrh, UniqueLabels);
+
+%-Cleanup.
+if not(OFE) && TmpGmCtx
+    delete(f_gmctx);
+end
+
+end
+
+%==========================================================================
+function [f_o, OutputFileExists, N_gmctx, f_gmctx, TmpGmCtx] = getgmctx(G, opts)
 if isempty(opts.GraphRefNii)
     f_gmctx = G.f.mask_gm_ctx; % GM ctx mask
     TmpGmCtx = false;
@@ -79,10 +97,13 @@ else
         N_gmctx = length(G.indices_gm_ctx);
     end
 end
+end
 
-if OutputFileExists
-    v_gmctxlhrh = spm_read_vols(spm_vol(f_o));
-    UniqueLabels = sort(unique(v_gmctxlhrh(:)));
+%==========================================================================
+function [v_lhrh, UL] = getgmctxlhrh(G, opts, f_o, OFE, N_gmctx)
+if OFE
+    v_lhrh = spm_read_vols(spm_vol(f_o));
+    UL = sort(unique(v_lhrh(:)));
 else
     % GM ctx mask
     [h_gmctx, v_gmctx] = getgmctx(G, f_gmctx, opts.DirSubjects);
@@ -91,17 +112,9 @@ else
     v_rib = getrib(G, f_gmctx, opts.DirSubjects);
 
     % lh/rh labeled GM ctx mask
-    v_gmctxlhrh = getlhrhvol(v_gmctx, v_rib, N_gmctx);
-    UniqueLabels = writelhrhvol(v_gmctxlhrh, v_gmctx, N_gmctx, h_gmctx, f_o);
-
-    % cleanup
-    if TmpGmCtx
-        delete(f_gmctx);
-    end
+    v_lhrh = getlhrhvol(v_gmctx, v_rib, N_gmctx);
+    UL = writelhrhvol(v_lhrh, v_gmctx, N_gmctx, h_gmctx, f_o);
 end
-
-% update G
-G = updateG(G, v_gmctxlhrh, UniqueLabels);
 end
 
 %==========================================================================
