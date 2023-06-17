@@ -41,8 +41,14 @@ if isempty(opts.GraphRefNii)
     f_gmctx = G.f.mask_gm_ctx; % GM ctx mask
     TmpGmCtx = false;
     N_gmctx = length(G.indices_gm_ctx);
-    [f_o, OutputFileExists] = chkexist(f_gmctx, opts);
+    if isempty(opts.OutputFile)
+        f_o = strrep(f_gmctx, '.nii', '_lhrh.nii');
+    else
+        f_o = opts.OutputFile;
+    end
+    [OutputFileExists, f_o] = outputfileexists(f_o, opts);
 else
+    assert(not(isempty(opts.OutputFile)));
     f_o = opts.OutputFile;
     [OutputFileExists, f_o] = outputfileexists(f_o, opts);
     if not(OutputFileExists)
@@ -96,19 +102,6 @@ end
 
 % update G
 G = updateG(G, v_gmctxlhrh, UniqueLabels);
-end
-
-%==========================================================================
-function [f_o, FileExists] = chkexist(f_gmctx, opts)
-
-% f_o exists?
-if isempty(opts.OutputFile)
-    f_o = strrep(f_gmctx, '.nii', '_lhrh.nii');
-else
-    f_o = opts.OutputFile;
-end
-
-[FileExists, f_o] = outputfileexists(f_o, opts);
 end
 
 %==========================================================================
