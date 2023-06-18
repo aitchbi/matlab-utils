@@ -38,7 +38,6 @@ p = inputParser;
 addParameter(p,'Verbose',true);
 addParameter(p,'WhichVols',[]);
 addParameter(p,'InputFilesInReadOnlyDir',false);
-
 parse(p,varargin{:});
 opts = p.Results;
 
