@@ -41,13 +41,14 @@ opts = d.Results;
 [f_o, OFE, N_gmctx, f_gmctx, TmpGmCtx] = getgmctx(G, opts);
 
 %-LHRH GM cortex mask.
-[v_gmctxlhrh, UniqueLabels] = getgmctxlhrh(G, opts, f_o, OFE, N_gmctx);
+[v_gmctxlhrh, UniqueLabels] = getlhrhgmctx(G, opts, f_o, OFE, N_gmctx);
 
 %-Update G.
 G = updateG(G, v_gmctxlhrh, UniqueLabels);
 
 %-Cleanup.
 if not(OFE) && TmpGmCtx
+    assert(not(isempty(f_gmctx)));
     delete(f_gmctx);
 end
 
@@ -69,7 +70,11 @@ else
     assert(not(isempty(opts.OutputFile)));
     f_o = opts.OutputFile;
     [OutputFileExists, f_o] = outputfileexists(f_o, opts);
-    if not(OutputFileExists)
+    if OutputFileExists
+        TmpGmCtx = false;
+        f_gmctx = [];
+        N_gmctx = [];
+    else
         f_ref = opts.GraphRefNii;
         if exist(f_ref, 'file')
             f_refgz = [];
@@ -100,13 +105,13 @@ end
 end
 
 %==========================================================================
-function [v_lhrh, UL] = getgmctxlhrh(G, opts, f_o, OFE, N_gmctx)
+function [v_lhrh, UL] = getlhrhgmctx(G, opts, f_o, OFE, N_gmctx)
 if OFE
     v_lhrh = spm_read_vols(spm_vol(f_o));
     UL = sort(unique(v_lhrh(:)));
 else
     % GM ctx mask
-    [h_gmctx, v_gmctx] = getgmctx(G, f_gmctx, opts.DirSubjects);
+    [h_gmctx, v_gmctx] = loadgmctx(G, f_gmctx, opts.DirSubjects);
 
     % reference ribbon
     v_rib = getrib(G, f_gmctx, opts.DirSubjects);
@@ -251,7 +256,7 @@ delete(f_o);
 end
 
 %==========================================================================
-function [h_gmctx, v_gmctx] = getgmctx(G, f_gmctx, DirSubjects)
+function [h_gmctx, v_gmctx] = loadgmctx(G, f_gmctx, DirSubjects)
 Ngmctx = length(G.indices_gm_ctx);
 if exist(f_gmctx, 'file')
     GunzipDlt = false;
