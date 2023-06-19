@@ -11,8 +11,9 @@ function [S, f_reg] = hb_nii2gsig(f, G, varargin)
 %   was defined (T1wSPace or DiffusionSpace depending on the graph);
 %   typically the G.f.mask/source file. 
 %
-%   NiiAndGInRegister: logical (true or false; default: false). If you are
-%   sure f and G are in register, set to true to bypass verification.
+%   BypassRegistrationVerification: logical (true or false; default:
+%   false). If you are sure f and G are in register, set to true to bypass
+%   verification.
 %
 %   ResliceNiiIfNotInRegisterWithG: logical (true or false; default:
 %   false). If set to true, GraphRefNii should also be set, in which case f
@@ -23,19 +24,38 @@ function [S, f_reg] = hb_nii2gsig(f, G, varargin)
 % Outputs: 
 %   S: graph signals, one per column.
 %
+% Examples: 
+%-standard call, regiter between f & G verified via fileds dim & mat in G: 
+% S = hb_nii2gsig(f, G);
+%
+%-bypass verifying whether or not f & G are in register:
+% S = hb_nii2gsig(f, G, 'BypassRegistrationVerification', true);
+% This is helpful e.g. if you are sure f & G are in register, and G does
+% not contain both required fields for verification; and you don't have
+% GraphRefNii.
+% 
+%-verify whether or not f & f_ref (graph ref nii) are in register:
+% [S, f_reg] = hb_nii2gsig(f, G, 'GraphRefNii', f_ref);
+% 
+%-not only verify, but also ensure (reslice) if needed:
+% [S, f_reg] = hb_nii2gsig(f, G, 'GraphRefNii', f_ref, 'ResliceNiiIfNotInRegisterWithG', true);
+% 
 % Dependencies: 
 % . SPM12 package
 % . hb_nii_load.m
+% . etc.
 %
-% HB
+% Hamid Behjat
 
 %-process optional inputs--------------------------------------------------
 funcLogi = @(x) assert(islogical(x));
 funcPath = @(x) assert(ischar(x) || isempty(x));
+funcNumb = @(x) assert(isnumeric(x) || ismember(x, [0 1]));
 d = inputParser;
-addParameter('GraphRefNii', [], funcPath);
-addParameter('NiiAndGInRegister', false, funcLogi);
-addParameter('ResliceNiiIfNotInRegisterWithG', false, funcLogi);
+addParameter(d, 'GraphRefNii', [], funcPath);
+addParameter(d, 'BypassRegistrationVerification', false, funcLogi);
+addParameter(d, 'ResliceNiiIfNotInRegisterWithG', false, funcLogi);
+addParameter(d, 'ResliceInterpolationOrder', 1, funcNumb); 
 parse(d,varargin{:});
 opts = d.Results;
 %--------------------------------------------------------------------------
@@ -58,47 +78,67 @@ else
     end
 end
 
+ord = opts.ResliceInterpolationOrder;
+
 %-Verify that f & G are in register.
-if opts.NiiAndGInRegister
+if opts.BypassRegistrationVerification
     f_reg = [];
+    f_load = f;
 else
     h_f = spm_vol([f, ',1']);
-    if isempty(opts.GraphRefNii)
+    if not(isempty(opts.GraphRefNii))
+        h_G = spm_vol(hb_gunzip(opts.GraphRefNii));
+    else
         h_G = struct;
         h_G.dim = G.dim;
         h_G.mat = G.mat;
-    else
-        h_G = spm_vol(hb_gunzip(opts.GraphRefNii));
     end
-    chk1 = isequal(h_f.dim, h_G.dim);
-    chk2 = all(abs(h_f.mat-h_G.mat)<1e-6,'all');
+    chk1 = not(isequal(h_f.dim, h_G.dim));
+    chk2 = not(all(abs(h_f.mat-h_G.mat)<1e-6,'all'));
     if any([chk1, chk2])
         if opts.ResliceNiiIfNotInRegisterWithG
             fprintf('\n..Reslicing input to match G..');
-            f_reg = hb_nii_reslice(f, opts.GraphRefNii, 1);
+            f_reg = hb_nii_reslice(f, opts.GraphRefNii, ord);
+            f_load = f_reg;
         else
-            errmsg = 'File not in register with space in which graph was defined.';
-            assert(chk1, errmsg);
-            assert(chk2, errmsg);
-            f_reg = [];
+            errmsg = 'File not in register with space of graph.';
+            error(errmsg);
         end
+    else
+        f_load = f;
     end
 end
 
 I = G.indices;
-[v, h] = hb_nii_load(f, 'IndicesToLoad', I);
+[v, h] = hb_nii_load(f_load, 'IndicesToLoad', I);
 
 Ng = length(I);
 
 Nv = length(h);
 
 S = zeros(Ng, Nv);
-for k=1:Nv
-    d = v(:,:,:,k);
-    S(:, k) = d(I) ;
+for iV=1:Nv
+    if Nv==1
+        d = v;
+    else
+        showprgs(iV, Nv, 'Extracting graph signals..');
+        d = v(:,:,:,iV);
+    end
+    S(:, iV) = d(I) ;
 end
 
 if CleanUp
     delete(f);
 end
+end
+
+%==========================================================================
+function showprgs(n,N,tag)
+l = numel(num2str(N));
+if n==1
+    fprintf('\n..%s ',tag);
+else
+    fprintf(repmat('\b',1,2*l+1),n);
+end
+eval(['fprintf(''%-',num2str(l),'d/%-',num2str(l),'d'',n,N)'])
 end
