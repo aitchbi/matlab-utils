@@ -1,4 +1,4 @@
-function f_o = hb_nii_reslice(f_i,f_r,interp,f_o,SilentMode,FilesInReadOnlyDir)
+function f_o = hb_nii_reslice(f_i, f_r, interp, f_o, SilentMode, FilesInReadOnlyDir, RegisterThenReslice)
 %HB_NII_RESLICE Coregisteres an input volume to a given reference volume,
 % and then reslices the volume so that the volume dimentions match,
 % resulting in a one-to-one correspondence between the voxels of the output
@@ -6,7 +6,7 @@ function f_o = hb_nii_reslice(f_i,f_r,interp,f_o,SilentMode,FilesInReadOnlyDir)
 % the directory of the input volume, unless name of output file specified.
 %
 % Inputs:
-%   f_i: file to reslice; full path.
+%   f_i: file to reslice; full path. See NOTE1. 
 %
 %   f_r: file to use as ref for resolution & coregistration; full path.
 %
@@ -20,8 +20,21 @@ function f_o = hb_nii_reslice(f_i,f_r,interp,f_o,SilentMode,FilesInReadOnlyDir)
 %   f_i and/or of f_r are in read-only directories, respectively. Default:
 %   [false false].
 %
+%   RegisterThenReslice: (optional) logical. If true, f_i will first be
+%   registered to f_r, and then, it will be resliced. Default: false.
+%
 % Outputs:
 %   f_o: resliced file; full path. 
+%
+%   --NOTE1: To reslice multiple files, input f_i as a cell array of file
+%   paths; the first file will be used for regiteration to f_r (e.g. an
+%   anatomical) whereas the other files will be resliced based on the
+%   header-of/registeration-obtained-based-on the first image. This option,
+%   i.e., multiple input files, makes most sense to use when
+%   RegisterThenReslice = true, in which case, a registeration will be
+%   obtained based on the first image, and will then be used to reslice all
+%   the files (multiple anatomical files, functional, PET, etc.; whatever
+%   is originally in register with teh firt image).
 %
 % Example usage:
 %   h_o = hb_nii_reslice(f_i,f_r);
@@ -47,6 +60,9 @@ function f_o = hb_nii_reslice(f_i,f_r,interp,f_o,SilentMode,FilesInReadOnlyDir)
 %
 %         f_o = hb_nii_reslice(f_i, f_r, [], [], [], [0 1]);
 %
+% [Exp-5] first register, then reslice
+%         hb_nii_reslice(f_i, f_r, [], f_o, [], [], 1); 
+% 
 % Cautionary note on Example [Exp-4]: the auto-naming of output is based on
 % two things: i) name of f_i, ii) the voxel resolution of f_r. Therefore,
 % for an input f_i, if running the function more than once for two or more
@@ -81,12 +97,42 @@ if ~exist('FilesInReadOnlyDir', 'var') || isempty(FilesInReadOnlyDir)
     FilesInReadOnlyDir = [false false]; % [f_i f_r]
 end
 
+if ~exist('RegisterThenReslice', 'var') || isempty(RegisterThenReslice)
+    RegisterThenReslice = false;
+end
+
 if ~SilentMode
     fprintf('\n Interpolation order used for reslicing: %d \n',interp); 
 end
 
 if isstruct(f_i)
     f_i = f_i.fname;
+end
+
+if iscell(f_i)
+    if length(f_i)==1
+        f_i = f_i{1};
+        f_others = [];
+        N_others = 0;
+    else
+        N_others = length(f_i)-1;
+        f_others = f_i(2:end);
+        f_i      = f_i{1};
+    end
+else
+    N_others = 0;
+    f_others = [];
+end
+
+if N_others>0
+    if not(isempty(f_o))
+        assert(iscell(f_o));
+        assert(length(f_o)==N_others+1);
+        f_others_o = f_o(2:end);
+        f_o = f_o{1};
+    else
+        error('extend code.');
+    end
 end
 
 %-Define output file name if not given.
@@ -190,6 +236,16 @@ if diff_io
     job.roptions.writedirectory = fileparts(f_o);
 end
 
+if RegisterThenReslice
+    job.eoptions.cost_fun = 'nmi'; % *
+    % *: this is the default cost func; just specified as a flag to have
+    % spm_run_coreg performs registration before reslicing.
+end
+
+if N_others>0
+    job.other = f_others;
+end
+
 if SilentMode
     out = spm_run_coreg_hb(job, true);
 else
@@ -199,6 +255,17 @@ end
 f_tmp = strsplit(out.rfiles{1}, ',');
 
 movefile(f_tmp{1}, f_o); % rename tmp_*.nii to name{f_o}
+
+if N_others>0
+    for k=1:N_others
+        f_tmp = strsplit(out.rfiles{1+k}, ',');
+        %if N_others==1
+        %    movefile(f_tmp{1}, f_others_o);
+        %else
+            movefile(f_tmp{1}, f_others_o{k});
+        %end
+    end
+end
 
 %-Cleanups.
 %--------------------------------------------------------------------------
