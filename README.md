@@ -1,3 +1,3 @@
 ## matlab-utils
 
-This repository contains a number of different utility functions that are re-used in other repositories on this GitHub profile. The repository is continuously updated and extended.  
+This repository contains a sporadic set of utility functions that are re-used either in other repositories on this GitHub profile, or elsewhere.
