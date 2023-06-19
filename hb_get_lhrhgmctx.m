@@ -41,7 +41,7 @@ opts = d.Results;
 [f_o, OFE, N_gmctx, f_gmctx, TmpGmCtx] = getgmctx(G, opts);
 
 %-LHRH GM cortex mask.
-[v_gmctxlhrh, UniqueLabels] = getlhrhgmctx(G, opts, f_o, OFE, N_gmctx);
+[v_gmctxlhrh, UniqueLabels] = getlhrhgmctx(G, opts, f_o, OFE, f_gmctx, N_gmctx);
 
 %-Update G.
 G = updateG(G, v_gmctxlhrh, UniqueLabels);
@@ -105,7 +105,7 @@ end
 end
 
 %==========================================================================
-function [v_lhrh, UL] = getlhrhgmctx(G, opts, f_o, OFE, N_gmctx)
+function [v_lhrh, UL] = getlhrhgmctx(G, opts, f_o, OFE, f_gmctx, N_gmctx)
 if OFE
     v_lhrh = spm_read_vols(spm_vol(f_o));
     UL = sort(unique(v_lhrh(:)));
