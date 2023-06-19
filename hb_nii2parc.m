@@ -1,12 +1,13 @@
 function [p, E, l, P] = hb_nii2parc(f_i, f_p, varargin)
-% HB_NII2PARC parcellates a given nifti based on a given parcellation.
-%
+% HB_NII2PARC parcellates a given nifti f_i based on a given parcellation
+% file f_p.
 % 
 % Inputs:
-%   f_i: a nifti volume; current code only works for 3D volume, not 4D.
+%   f_i: file path of a nifti volume; 3D or 4D, in *.nii or *.nii.gz
+%   format.
 % 
-%   f_p: a segmentation/parcellation nifti file, e.g. a mask or a
-%   cortical parcellation.
+%   f_p: file path of a nifti segmentation/parcellation file, e.g. a mask
+%   or a cortical parcellation, in *.nii or *.nii.gz format. 
 %
 %   Name-Value Pair Arguments:
 %   RegisterToParc: logical [default: false]. By default, the parcellation
@@ -15,46 +16,75 @@ function [p, E, l, P] = hb_nii2parc(f_i, f_p, varargin)
 %   the operation can be reversed, that is, to register the parcellation
 %   file to the f_i.  
 %
-%   DeleteIntermediateFiles: logical [default: false]. 
+%   DeleteIntermediateFiles: logical [default: false]. Set to true if you
+%   want to verify potential intermediate fiels that are generated in the
+%   function, e.g. registered version of f_i, f_p &/or the mask.
 %
-%   InterpolationOrder: 0 or 1. If not set, y default, 0 used if f_p needs
-%   reslicing whereas 1 is used if f_i needs reslicing. This is because f_p
-%   is a segmentation, and we don't want to mess up the label, thus, we use
-%   nearest neighbor interpolation, whereas for f_i, typically that's not a
-%   segmentation, thus, values are continious, and therefore, best to use
-%   linear interpolation. But if f_i is a segmentation (label, binary
-%   file), set this input to 0.
+%   InterpolationOrder: 0 or 1. If not set, by default, 0 is used if f_p
+%   needs reslicing whereas 1 is used if f_i needs reslicing. This is
+%   because f_p is a segmentation, and we don't want to mess up the label
+%   values, thus, we use nearest neighbor interpolation, whereas for f_i,
+%   which typically is not a segmentation file, at least for the current
+%   application, values are continious, and therefore, best to use linear
+%   interpolation. But if f_i is also a segmentation (label, binary file),
+%   set this input to 0 if 'RegisterToParc' is set to true. 
 %
-%   MaskFile: filepath to a nifti mask file, i.e., binary. f_i will be
-%   masked, before parcellating it with f_p. The mask can be either in
-%   register with f_i, f_p, or even not in register with either; the
-%   function reslices the mask appropriately if needed.
+%   MaskFile: filepath to a nifti binary file, in .nii or .nii.gz format.
+%   f_i will be masked, before parcellating it with f_p. The mask can be
+%   either in register with f_i, f_p, or even not in register with either;
+%   the function registeres and reslices the mask appropriately if needed.
 %
 % Outputs:
-%   p: fraction of total energy of f_i in each parcel of f_p. If no mask
-%   file specified: first, the total energy (norm^2) of f_i across all
-%   parcels in f_p is computed, denoted E (see below, second output), then,
-%   the enrgy associated to each parcel is computed and returned, such that
-%   E = p(1) + p(2) + ... + p(Np), where Np denotes the number of parcels.
-%   If mask file specified, the procedure is the same as above, only that
-%   initially f_p is masked by the mask file; the equality condition still
-%   holds.
+%   p: R x N matrix, where R is the number of unique non-zero labels in
+%   f_p, and N is the number of volumes in f_i, thus one signal per column.
+%   Let us assume f_i is a 3D volume, thus N = 1. The i-th element in p
+%   gives the fraction of the total energy in the i-th parcel, whos label
+%   is l(i), see below. If no mask file specified as input: first, the
+%   total energy (2-norm ^2) of f_i across all parcels in f_p is computed,
+%   denoted E (see below, second output), then, the enrgy associated to
+%   each parcel is computed and returned, such that E = p(1) + p(2) + ... +
+%   p(R). If a mask file specified a input, the procedure is the same as
+%   above, with the only difference that initially f_p is masked; the
+%   equality condition specified above should still hold.
 %
-%   E: total energy (norm^2) of f_i across all parcels in f_p, after
-%   registereing f_i and f_p, and potentailly applied an input mask.
-%   Specifically, TE is the sum of second power of all voxels in f_i that
-%   overlap with a parcel in f_p and are also within the mask if given.
+%   E: 1xN vector, where the k-th element gives the total energy (2-norm
+%   ^2) of the k-th volume of f_i across all parcels in f_p (after
+%   registereing f_i and f_p, and potentailly also applying a mask if
+%   given). In other word; E(k) is the sum of second power of all voxels in
+%   the k-th volume in f_i that overlap with a parcel in f_p and are also
+%   within the mask if given.
 %
-%   l: the labels in f_p associated to each element of P; the labels are
-%   sorted in ascending order, i.e, L(i) < L(i+1) for all i \in [1, Np]
-%   where Np denotes the number of unique non-zero labels in f_p.
+%   l: Rx1 vector the labels in f_p associated to each element of row of p
+%   and P; the labels are sorted in ascending order, i.e, l(i) < l(i+1) for
+%   all i \in [1, R].
 %
-%   P: an MxF cell array, wherein array (i,j) stores voxel values of j-th
-%   frame of f_i associated to label l(j) in f_p. The array is sorted based
-%   on sorted labels in f_p; i.e., P{1} and P{end} contain voxels in f_i
-%   associated to the smallest and largest non-zero label in f_p,
-%   respectively.
+%   P: R x N cell array, wherein array (i,k) stores voxel values of the k-th
+%   volume of f_i associated to label l(i) in f_p. Note that depending on
+%   how the registeration is done, what the mask file is, and several other
+%   uncertanities, the total number of voxel values in P{:,k} does not in
+%   any accurate sense relate to nnz(the-mask), nnz(f_i), nor nnz(f_p). It
+%   is best to not look too much into detail into the distribution of these
+%   values per parcel and instead look at the overall energy in each parcel
+%   (i.e., p, first output) which is more robust measure.
 % 
+% Examples:
+%-default call(registering f_p to f_i, no mask, etc.):
+% [p, E, l, P] = hb_nii2parc(f_gsig, f_parc);
+%
+%-regitering f_i to f_p instead of vice versa:
+% [p, E, l, P] = hb_nii2parc(__,'RegisterToParc', true);
+%
+%-keeping intermediate files (good for inspection/debugging):
+% [p, E, l, P] = hb_nii2parc(__,'DeleteIntermediateFiles', false)
+%
+%-using a different interpolation order than the default:
+% [p, E, l, P] = hb_nii2parc(__, 'InterpolationOrder', 1);
+%
+% Default interpolation order: 0 if registering f_parc to f_gsig (default),
+% or 1 if vice versa. Specifying 'InterpolationOrder' will overwrite the
+% default, which might be helpful depending on what you want to do in
+% future.
+%
 % Dependencies:
 % .SPM12: https://www.fil.ion.ucl.ac.uk/spm/software/spm12/
 % .https://github.com/aitchbi/matlab-utils/blob/main/hb_nii_reslice.m 
@@ -69,23 +99,22 @@ funcLogi = @(x) assert(islogical(x));
 funcIntp = @(x) assert(ismember(x,[0 1]) || isempty(x));
 funcPath = @(x) assert(ischar(x) || isempty(x));
 p = inputParser;
-addParameter(p,'RegisterToParc', false, funcLogi);
 addParameter(p,'DeleteIntermediateFiles', true, funcLogi);
 addParameter(p,'InterpolationOrder', [], funcIntp);
+addParameter(p,'RegisterToParc', false, funcLogi);
 addParameter(p,'MaskFile', [], funcPath);
 parse(p,varargin{:});
 opts = p.Results;
 %--------------------------------------------------------------------------
 
+%-Verify inputs.
 [f_i, f_p, FilesToCleanUp] = verifyinputfile(f_i, f_p);
 
-%assert(length(spm_vol(f_i))==1, 'extend for 4D');
-
-%-Verify inputs & register if needed.
-[f_i, f_p, FilesToCleanUp] = registerfiles(opts, f_i, f_p, FilesToCleanUp);
+%-Register files if needed.
+[f_i, f_p, FTC] = registerfiles(opts, f_i, f_p, FilesToCleanUp);
 
 %-Mask files if mask given.
-[f_i, f_p, FilesToCleanUp, I_msk] = maskfiles(opts, f_i, f_p, FilesToCleanUp);
+[f_i, f_p, FTC, I_msk] = maskfiles(opts, f_i, f_p, FTC);
 
 %-Load files.
 v_i = hb_nii_load(f_i, 'IndicesToLoad', I_msk);
@@ -129,7 +158,7 @@ for iV=1:Nv
 end
 
 %-Cleanup.
-cleanup(opts, FilesToCleanUp);
+cleanup(opts, FTC);
 end
 
 %==========================================================================
@@ -164,7 +193,7 @@ end
 end
 
 %==========================================================================
-function [f_i, f_p, FilesToCleanUp] = registerfiles(opts, f_i, f_p, FilesToCleanUp)
+function [f_i, f_p, FTC] = registerfiles(opts, f_i, f_p, FTC)
 
 sts = chkmatch(f_i, f_p);
 
@@ -196,7 +225,7 @@ else
         assert(chkmatch(f_reg, f_i));
         f_p = f_reg;
     end
-    FilesToCleanUp = appendftc(FilesToCleanUp, f_reg);
+    FTC = appendftc(FTC, f_reg);
 end
 end
 
