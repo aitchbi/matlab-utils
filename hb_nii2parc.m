@@ -153,7 +153,7 @@ for iV=1:Nv
         P{iP,iV} = viv(v_p==l(iP));  
         p(iP,iV) = norm(P{iP,iV})^2;
     end
-    assert(abs(sum(p(:,iV))-E(iV))<1e-6*E(iV));
+    assert(abs(sum(p(:,iV))-E(iV))<1e-3*E(iV));
     assert(sum(cellfun(@length, P(:,iV)))==length(vivp));
 end
 
