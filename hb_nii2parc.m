@@ -143,6 +143,7 @@ for iV=1:Nv
         viv = v_i(:,:,:,iV);
         showprgs(iV,Nv,'Parcellating volumes..');
     end
+    viv(isnan(viv)) = 0; % skip NaNs, otherwise problem with norms below
 
     %-Compute total energy.
     vivp = viv(v_p~=0);
@@ -153,7 +154,7 @@ for iV=1:Nv
         P{iP,iV} = viv(v_p==l(iP));  
         p(iP,iV) = norm(P{iP,iV})^2;
     end
-    assert(abs(sum(p(:,iV))-E(iV))<1e-3*E(iV));
+    assert(abs(sum(p(:,iV))-E(iV))<1e-3*E(iV)); % error below 0.1%? 
     assert(sum(cellfun(@length, P(:,iV)))==length(vivp));
 end
 
