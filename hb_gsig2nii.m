@@ -53,6 +53,8 @@ assert(length(I)==size(S,1));
 
 Ns = size(S,2);
 
+[~,~] = mkdir(fileparts(f_o));
+
 %-Reference header.
 if ischar(ref)
     f_r = ref;
