@@ -170,7 +170,7 @@ else
         d1 = 'Graph structure missing filed ".mat"; ';
         d2 = 'match between G and ref file not verified.';
         msg = [d1 d2];
-        warninig(msg);
+        warning(msg);
     end
     DataDim = h_r.dim;
     DataMat = h_r.mat;
