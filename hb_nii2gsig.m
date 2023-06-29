@@ -3,13 +3,13 @@ function [S, f_reg] = hb_nii2gsig(f, G, varargin)
 %
 % Inputs:
 %   f: full path of nifti file
-%   G: graph structure with fields indices etc.  
+%   G: graph structure with fields indices etc.
 %
 %   Name-Value Pair Arguments:
 %   GraphRefNii: if fields .dim and .mat not given in G, specify a
 %   reference file which is in register with the space in which the graph
 %   was defined (T1wSPace or DiffusionSpace depending on the graph);
-%   typically the G.f.mask/source file. 
+%   typically the G.f.mask/source file.
 %
 %   BypassRegistrationVerification: logical (true or false; default:
 %   false). If you are sure f and G are in register, set to true to bypass
@@ -20,12 +20,19 @@ function [S, f_reg] = hb_nii2gsig(f, G, varargin)
 %   will be resliced to match the space in which G was defiend
 %   (GraphRefNii). The resliced file (f_reg) is returned, which is best to
 %   be be verified.
-% 
-% Outputs: 
-%   S: graph signals, one per column.
 %
-% Examples: 
-%-standard call, regiter between f & G verified via fileds dim & mat in G: 
+%   WhichFrames: a 1 X F vector of indices, where F denotes the 4th
+%   dimension of an input nifti; if input is a 3D nifti, WhichFrames is not
+%   applicable. The indices specify which frames to extract graph signals
+%   from. By default a graph signal is extracted from all frames, i.e.,
+%   WhichFrames = 1:length(spm_vol(f)).
+%
+% Outputs:
+%   S: graph signals, one per column.
+%   f_reg: the registered version if f, if applicable, otherwise [].  
+%
+% Examples:
+%-standard call, regiter between f & G verified via fileds dim & mat in G:
 % S = hb_nii2gsig(f, G);
 %
 %-bypass verifying whether or not f & G are in register:
@@ -33,14 +40,17 @@ function [S, f_reg] = hb_nii2gsig(f, G, varargin)
 % This is helpful e.g. if you are sure f & G are in register, and G does
 % not contain both required fields for verification; and you don't have
 % GraphRefNii.
-% 
+%
 %-verify whether or not f & f_ref (graph ref nii) are in register:
 % [S, f_reg] = hb_nii2gsig(f, G, 'GraphRefNii', f_ref);
-% 
+%
 %-not only verify, but also ensure (reslice) if needed:
 % [S, f_reg] = hb_nii2gsig(f, G, 'GraphRefNii', f_ref, 'ResliceNiiIfNotInRegisterWithG', true);
-% 
-% Dependencies: 
+%
+%-just some of the frames:
+% S = hb_nii2gsig(f, G, 'WhichFrames', [1:10, 90:100]);
+%
+% Dependencies:
 % . SPM12 package
 % . hb_nii_load.m
 % . etc.
@@ -54,15 +64,11 @@ function [S, f_reg] = hb_nii2gsig(f, G, varargin)
 [f_load, f_reg, I] = verifyregist(f, G, opts);
 
 %-Extract gsigs.
-S = extractgsigs(f_load, I);
+S = extractgsigs(f_load, I, opts);
 
 %-Cleanup.
 docleanup(f,CleanUp);
 end
-
-
-
-
 
 %==========================================================================
 function [opts,CleanUp] = processinputs(f,G,varinputs,p)
@@ -123,6 +129,7 @@ else
             error(errmsg);
         end
     else
+        f_reg = [];
         f_load = f;
     end
 end
@@ -130,19 +137,30 @@ I = G.indices;
 end
 
 %==========================================================================
-function S = extractgsigs(f_load, I)
-[v, h] = hb_nii_load(f_load, 'IndicesToLoad', I);
-Ng = length(I);
+function S = extractgsigs(f_load,I,opts)
+h = spm_vol(f_load);
 Nv = length(h);
-S = zeros(Ng, Nv);
-for iV=1:Nv
-    if Nv==1
+if isempty(opts.WhichFrames)
+    frames = 1:Nv;
+else
+    frames = opts.WhichFrames;
+end
+Nf = length(frames);
+assert(Nf<=Nv);
+assert(all(ismember(frames,1:Nv)));
+v = hb_nii_load(f_load, 'IndicesToLoad', I, 'FramesToLoad',frames);
+Ng = length(I);
+S = zeros(Ng, Nf);
+for iF=1:Nf
+    if iF==1 && Nv==1
         d = v;
     else
-        showprgs(iV, Nv, 'Extracting graph signals..');
-        d = v(:,:,:,iV);
+        if Nf>1
+            showprgs(iF, Nf, 'Extracting graph signals..');
+        end
+        d = v(:,:,:,iF);
     end
-    S(:, iV) = d(I) ;
+    S(:,iF) = d(I) ;
 end
 end
 
