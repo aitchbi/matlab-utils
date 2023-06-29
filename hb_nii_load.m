@@ -4,6 +4,7 @@ function [v,h] = hb_nii_load(f,varargin)
 d = inputParser;
 addParameter(d,'HeaderType','spm');
 addParameter(d,'IndicesToLoad',[]);
+addParameter(d,'FramesToLoad',[]);
 parse(d,varargin{:});
 opts = d.Results;
 
@@ -38,6 +39,14 @@ switch opts.HeaderType
         %assert(exist('spm_vol.m','file'),'"spm" package not in path.')
         h = spm_vol(f);
         Nv = length(h);
+        if isempty(opts.FramesToLoad)
+            frames = 1:Nv;
+        else
+            frames = opts.FramesToLoad;
+        end
+        Nf = length(frames);
+        assert(Nf<=Nv);
+        assert(all(ismember(frames,1:Nv)));
         if Nv==1
             v = spm_read_vols(h);
         else
@@ -46,15 +55,21 @@ switch opts.HeaderType
                 I = opts.IndicesToLoad;
                 [x,y,z] = ind2sub(h1.dim,I);
                 v1d0 = zeros(prod(h1.dim),1);
-                v = zeros([h1.dim,Nv]);
-                for iV=1:Nv
+                v = zeros([h1.dim,Nf]);
+                for iF=1:Nf
+                    iV = frames(iF);
                     v1d = v1d0;
                     v1d(I) = spm_sample_vol(h(iV),x,y,z,0);
-                    v(:,:,:,iV) = reshape(v1d,h1.dim);
-                    showprgs(iV,Nv);
+                    v(:,:,:,iF) = reshape(v1d,h1.dim);
+                    if Nf>1
+                        showprgs(iF,Nf);
+                    end
                 end
             else
                 v = spm_read_vols(h);
+                if not(isequal(Nf,Nv))
+                    v = v(:,:,:,frames);
+                end
             end
         end
         if DELNONZIP
