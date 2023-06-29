@@ -1,4 +1,4 @@
-function [counts,bcents,sts,bedges,bwidth,funcPath] = hb_specest(L,R,N,todo,th,sp,tt)
+function [counts,bcents,sts,bedges,bwidth,funcPath] = hb_specest(L,R,N,todo,th,sp,tt,varargin)
 %HB_SPECEST estimates the distribution of eigenvalues of Laplacian matrix 
 % L at N bins within range R, where the bin widths are fixed and equal to 
 % (R(2)-R(1))/N. If R(2) > maximum eigenvalue of L (lmax), counts for bins 
@@ -51,7 +51,16 @@ if ~exist('tt','var')||isempty(tt)
     tt = false; 
 end
 
-lmax = eigs(L,1,'largestreal');
+p = inputParser;
+addParameter(p,'MaxEig', []);
+parse(p,varargin{:});
+opts = p.Results;
+
+if isempty(opts.MaxEig)
+    lmax = eigs(L,1,'largestreal');
+else
+    lmax = opts.MaxEig;
+end
 
 if R(1)>=lmax, error(''); end
 if R(1)<0, error(''); end
