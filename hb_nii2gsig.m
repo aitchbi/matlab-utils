@@ -47,26 +47,31 @@ function [S, f_reg] = hb_nii2gsig(f, G, varargin)
 %
 % Hamid Behjat
 
-%-process optional inputs--------------------------------------------------
-funcLogi = @(x) assert(islogical(x));
-funcPath = @(x) assert(ischar(x) || isempty(x));
-funcNumb = @(x) assert(isnumeric(x) || ismember(x, [0 1]));
-d = inputParser;
-addParameter(d, 'GraphRefNii', [], funcPath);
-addParameter(d, 'BypassRegistrationVerification', false, funcLogi);
-addParameter(d, 'ResliceNiiIfNotInRegisterWithG', false, funcLogi);
-addParameter(d, 'ResliceInterpolationOrder', 1, funcNumb); 
-parse(d,varargin{:});
-opts = d.Results;
-%--------------------------------------------------------------------------
+%-Process inputs.
+[opts, CleanUp] = processinputs(f,G,varargin,inputParser);
 
+%-Verify f & G are in register.
+[f_load, f_reg, I] = verifyregist(f, G, opts);
+
+%-Extract gsigs.
+S = extractgsigs(f_load, I);
+
+%-Cleanup.
+docleanup(f,CleanUp);
+end
+
+
+
+
+
+%==========================================================================
+function [opts,CleanUp] = processinputs(f,G,varinputs,p)
 if endsWith(f, '.gz')
     fgz = f;
     f = strrep(f, '.nii.gz', '.nii');
 else
     fgz = [f, '.gz'];
 end
-
 if exist(f, 'file')
     CleanUp = false;
 else
@@ -77,10 +82,22 @@ else
         error('file not found');
     end
 end
+assert(isfield(G,'indices'));
+funcLogi = @(x) assert(islogical(x));
+funcPath = @(x) assert(ischar(x) || isempty(x));
+funcNumb = @(x) assert(isnumeric(x) || ismember(x, [0 1]));
+funcVect = @(x) assert(isnumeric(x) || isvector(x));
+addParameter(p, 'GraphRefNii', [], funcPath);
+addParameter(p, 'BypassRegistrationVerification', false, funcLogi);
+addParameter(p, 'ResliceNiiIfNotInRegisterWithG', false, funcLogi);
+addParameter(p, 'ResliceInterpolationOrder', 1, funcNumb);
+addParameter(p, 'WhichFrames', [], funcVect);
+parse(p,varinputs{:});
+opts = p.Results;
+end
 
-ord = opts.ResliceInterpolationOrder;
-
-%-Verify that f & G are in register.
+%==========================================================================
+function [f_load, f_reg, I] = verifyregist(f, G, opts)
 if opts.BypassRegistrationVerification
     f_reg = [];
     f_load = f;
@@ -98,6 +115,7 @@ else
     if any([chk1, chk2])
         if opts.ResliceNiiIfNotInRegisterWithG
             fprintf('\n..Reslicing input to match G..');
+            ord = opts.ResliceInterpolationOrder;
             f_reg = hb_nii_reslice(f, opts.GraphRefNii, ord);
             f_load = f_reg;
         else
@@ -108,14 +126,14 @@ else
         f_load = f;
     end
 end
-
 I = G.indices;
+end
+
+%==========================================================================
+function S = extractgsigs(f_load, I)
 [v, h] = hb_nii_load(f_load, 'IndicesToLoad', I);
-
 Ng = length(I);
-
 Nv = length(h);
-
 S = zeros(Ng, Nv);
 for iV=1:Nv
     if Nv==1
@@ -126,7 +144,10 @@ for iV=1:Nv
     end
     S(:, iV) = d(I) ;
 end
+end
 
+%==========================================================================
+function docleanup(f,CleanUp)
 if CleanUp
     delete(f);
 end
