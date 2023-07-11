@@ -26,6 +26,10 @@ function [f_gparc, P, f_nolabel, I, V] = hb_voxbg_get_maskedparc(f_graph,f_parc,
 %   name is generated based on f_graph and f_parc, and the file is written
 %   in same directory as f_graph. File format: *.nii or *.nii.gz.
 %
+%   LabelForGraphMaskVoxelsWithNoParcel: a value; label to assign to graph
+%   mask voxels in f_gparc that had no label in f_parc. Default: 0; i.e.,
+%   just voxels that fall outside the graph mask.
+%
 %   WriteFileShowingGraphMaskVoxelsWithNoLabel: logical, specifying whether
 %   or not to write a volume in which voxels within the garph mask that had
 %   no label in f_parc are marked; default: false.
@@ -73,6 +77,8 @@ d = inputParser;
 addParameter(d,'GzipOutput', true);
 addParameter(d,'WhichLabels', []);
 addParameter(d,'OutputFileName', []);
+addParameter(d,'LabelForGraphMaskVoxelsWithNoParcel', 0);
+
 addParameter(d,'WriteFileShowingGraphMaskVoxelsWithNoLabel', false);
 parse(d,varargin{:});
 opts = d.Results;
@@ -157,16 +163,6 @@ v_mp = zeros(size(v_m));
 for k=1:Np
     v_mp(and(v_p==P(k),v_m==1)) = P(k);
 end
-h_mp = struct;
-h_mp.fname = f_gparc; 
-h_mp.dim   = h_g.dim; 
-h_mp.mat   = h_g.mat;
-h_mp.dt    = [64 0]; 
-spm_write_vol(h_mp,v_mp);
-if opts.GzipOutput
-    gzip(f_gparc);
-    F = appendcleanup(F,f_gparc);
-end
 Im  = find(v_m);
 Imp = find(v_mp);
 if isequal(Im,Imp)
@@ -197,6 +193,17 @@ else
     else
         f_nolabel = [];
     end
+end
+v_mp(V) = opts.LabelForGraphMaskVoxelsWithNoParcel;
+h_mp = struct;
+h_mp.fname = f_gparc; 
+h_mp.dim   = h_g.dim; 
+h_mp.mat   = h_g.mat;
+h_mp.dt    = [64 0]; 
+spm_write_vol(h_mp,v_mp);
+if opts.GzipOutput
+    gzip(f_gparc);
+    F = appendcleanup(F,f_gparc);
 end
 
 %-Cleanup.
