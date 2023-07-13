@@ -66,6 +66,7 @@ switch opts.HeaderType
                     end
                 end
             else
+                fprintf('\n..Loading 4D nifti.. \n');
                 v = spm_read_vols(h);
                 if not(isequal(Nf,Nv))
                     v = v(:,:,:,frames);
