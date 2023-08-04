@@ -91,9 +91,10 @@ switch WhichAtlas
         end
         opts.Nroi = opts.Nroi_hemi*2;
 end
+opts.ParcName = d;
 
-f_lh = fullfile(d_lbls,sprintf('lh.%s.annot',d));
-f_rh = fullfile(d_lbls,sprintf('rh.%s.annot',d));
+f_lh = fullfile(d_lbls,sprintf('lh.%s.annot',opts.ParcName));
+f_rh = fullfile(d_lbls,sprintf('rh.%s.annot',opts.ParcName));
 
 [~,~,coltb_lh] = read_annotation(f_lh);
 [~,~,coltb_rh] = read_annotation(f_rh);
