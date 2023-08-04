@@ -1,5 +1,5 @@
-function hb_inspect_graph(G,opts,nodes)
-%HB_INSPECT_GRAPH generates multiple plots for inspecting a voxBG graph
+function hb_voxbg_inspect(G,opts,nodes)
+%HB_VOXBG_INSPECT generates multiple plots for inspecting a voxBG graph
 %around specified input nodes or nodes selected interactively.
 %
 % Inputs:
@@ -28,11 +28,11 @@ function hb_inspect_graph(G,opts,nodes)
 %   fields should be the same: refImage, plane, and slice.
 %
 % Examples:
-% (1) hb_inspect_graph(G,opts); % select a node interactively
-% (2) hb_inspect_graph(G,opts,nodes); % input node(s)
-% (3) hb_inspect_graph({G1,G2},opts); % compare two graphs; same opts; same
-% (4) hb_inspect_graph({G1,G2},{opts1,opts2}); % compare two graphs; different opts
-% (5) hb_inspect_graph({G1,G2},{opts1,opts2},{nodes1,nodes2});
+% (1) hb_voxbg_inspect(G,opts); % select a node interactively
+% (2) hb_voxbg_inspect(G,opts,nodes); % input node(s)
+% (3) hb_voxbg_inspect({G1,G2},opts); % compare two graphs; same opts; same
+% (4) hb_voxbg_inspect({G1,G2},{opts1,opts2}); % compare two graphs; different opts
+% (5) hb_voxbg_inspect({G1,G2},{opts1,opts2},{nodes1,nodes2});
 %
 % Hamid Behjat
 
@@ -742,7 +742,7 @@ for iG=1:Ng
                     opts.axis_gaussian_masked = [];
                 end
             end
-            [~,~,ABB{iN}] = hb_plot_atom(G,node,opts.plane,...
+            [~,~,ABB{iN}] = hb_voxbg_plot_atom(G,node,opts.plane,...
                 'BBWidth',bbw,...
                 'Underlay',opts.underlay,...
                 'Alpha',opts.Alpha,...
@@ -770,7 +770,7 @@ for iG=1:Ng
                     'Position',[400 50 300 300],...
                     'MenuBar',opts.FigMenuBar,...
                     'NumberTitle',FigNumberTitle);
-                hb_plot_atom(G,node,opts.plane,...
+                hb_voxbg_plot_atom(G,node,opts.plane,...
                     'BBWidth',bbw,...
                     'Underlay',opts.underlay,...
                     'Alpha',opts.Alpha,...
@@ -870,7 +870,7 @@ for iG=1:Ng
                     v = rot90(v,2);
                     v = v';
             end
-            imagesc(v); % if alpha needed, see hb_plot_atom.m: ,'AlphaData',?);
+            imagesc(v); % if alpha needed, see hb_voxbg_plot_atom.m: ,'AlphaData',?);
             colormap gray;
             hold on;
             d = bbw/2;
@@ -885,7 +885,7 @@ for iG=1:Ng
             % note1:
             % this is sloppy, and not necesarily correct for dofferent plane
             % settings; the way the atom is created and plotted (in
-            % hb_plot_atom.m) is not informed by spm_vol(G.f.mask).dim, and
+            % hb_voxbg_plot_atom.m) is not informed by spm_vol(G.f.mask).dim, and
             % thus I am doing a messy fix here.
             %
             % note2: to ensure GM always shown as gray even if all voxel within
