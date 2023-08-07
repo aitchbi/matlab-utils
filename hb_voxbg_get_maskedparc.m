@@ -1,9 +1,10 @@
-function [f_gparc, P, f_nolabel, I, V] = hb_voxbg_get_maskedparc(f_graph,f_parc,varargin)
+function [f_gparc, P, f_nolabel, I, V, gparc] = hb_voxbg_get_maskedparc(graph,f_parc,varargin)
 % HB_VOXBG_GET_MASKEDPARC generates a masked version of input parcellation
 % such that only voxels that fall within the graph mask are returned.
 %
 % Inputs:
-%   f_graph: voxel-wise brain graph; .mat file. 
+%   graph: voxel-wise brain graph; graph structure or absolute address to
+%   graph structure saved as a .mat file.
 %
 %   f_parc : a parcellation of the subjects brain, defined in the same in
 %   which the graph was defined. It is assumed that the parcellation file
@@ -55,8 +56,12 @@ function [f_gparc, P, f_nolabel, I, V] = hb_voxbg_get_maskedparc(f_graph,f_parc,
 %   voxels in graph's mask) were labelled.
 %
 %   V: voxel indices in the graph mask that were not assigned a label. This
-%   is a vector with teh same length as I. V(k) is the voxel index
+%   is a vector with the same length as I. V(k) is the voxel index
 %   associated to graph vertex I(k), i.e. V(k) = G.indices(I(k)).
+%   
+%   gparc: parcel assigned to each graph vertex. This is a vector of the
+%   same size as G.indices. gparc(k) is the parcel assigned to the vertex
+%   number k, where the order of vertices is as in G.A and G.indices. 
 %
 % Examples:
 % [f_gp, P] = hb_voxbg_get_maskedparc(f_g,f_p);
@@ -71,14 +76,11 @@ function [f_gparc, P, f_nolabel, I, V] = hb_voxbg_get_maskedparc(f_graph,f_parc,
 %
 % Hamid Behjat
 
-assert(endsWith(f_graph,'.mat'));
-
 d = inputParser;
 addParameter(d,'GzipOutput', true);
 addParameter(d,'WhichLabels', []);
 addParameter(d,'OutputFileName', []);
 addParameter(d,'LabelForGraphMaskVoxelsWithNoParcel', 0);
-
 addParameter(d,'WriteFileShowingGraphMaskVoxelsWithNoLabel', false);
 parse(d,varargin{:});
 opts = d.Results;
@@ -93,8 +95,16 @@ if not(isempty(opts.OutputFileName))
 end
 
 %-Load graph.
-d = load(f_graph);
-G = d.G;
+if ischar(graph)
+    assert(endsWith(graph,'.mat'));
+    f_graph = graph;
+    d = load(f_graph);
+    G = d.G;
+elseif isstruct(graph)
+    G = graph;
+    f_graph = G.f.graph;
+end
+clear graph;
 h_g = struct;
 h_g.dim = G.dim;
 h_g.mat = G.mat;
@@ -205,6 +215,9 @@ if opts.GzipOutput
     gzip(f_gparc);
     F = appendcleanup(F,f_gparc);
 end
+
+% label of each graph vertex; 0 assigned to vertices with no label. 
+gparc = v_mp(G.indices);
 
 %-Cleanup.
 for k=1:length(F)
