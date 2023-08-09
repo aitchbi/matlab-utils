@@ -230,7 +230,7 @@ end
 job.roptions.interp = interp;
 job.roptions.wrap = [0 0 0];
 job.roptions.mask = 0;
-job.roptions.prefix = 'tmp_';
+job.roptions.prefix = sprintf('%s_',get_randtag);
 
 if diff_io
     job.roptions.writedirectory = fileparts(f_o);
