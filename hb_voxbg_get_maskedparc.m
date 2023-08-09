@@ -185,6 +185,8 @@ else
         [d1,d2] = fileparts(f_gparc);
         if endsWith(d2,'.nii')
             d2 = strrep(d2,'.nii','');
+        elseif endsWith(d2,'.nii.gz')
+            d2 = strrep(d2,'.nii.gz','');
         end
         f_nolabel = fullfile(d1,...
             [d2,'_unlabelled_graph_mask_voxels.nii']);
