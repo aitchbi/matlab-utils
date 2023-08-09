@@ -158,7 +158,14 @@ Np = length(P);
 
 %-Parcellation in graph mask.
 if isempty(opts.OutputFileName)
-    [~,d] = fileparts(f_parc);
+    if endsWith(f_parc, '.nii')
+        d = f_parc;
+    elseif endsWith(f_parc, '.nii.gz')
+        d = strrep(f_parc,'.gz','');
+    else
+        error('fishy');
+    end
+    [~,d] = fileparts(d);
     f_gparc = strrep(f_graph, '.mat', sprintf('_%s.nii', d));
 else
     f_gparc = opts.OutputFileName;
