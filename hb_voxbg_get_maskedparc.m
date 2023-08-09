@@ -110,7 +110,7 @@ h_g.dim = G.dim;
 h_g.mat = G.mat;
 
 %-Build graph mask.
-f_mask = strrep(f_graph,'.mat','___tmp_mask.nii');
+f_mask = strrep(f_graph,'.mat',['_',get_randtag,'_mask.nii']);
 F = appendcleanup([],f_mask);
 h_m = struct;
 h_m.dim = h_g.dim;
@@ -135,7 +135,7 @@ else
         f_p = strrep(f_parc,'.gz','');
         F = appendcleanup(F,f_p);
     end
-    f_ptmp = strrep(f_p,'.nii','___tmp.nii');
+    f_ptmp = strrep(f_p,'.nii',['_',get_randtag,'.nii']);
     hb_nii_reslice(f_p,f_mask,0,f_ptmp);
     h_atmp = spm_vol(f_ptmp);
     assert(verifymatch(h_atmp,h_g));
@@ -242,4 +242,9 @@ else
         f
         ];
 end
+end
+
+%==========================================================================
+function t = get_randtag
+t = sprintf('tmp%d',round(rand*1e12));
 end
