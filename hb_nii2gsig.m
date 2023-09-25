@@ -1,4 +1,4 @@
-function [S, f_reg] = hb_nii2gsig(f, G, varargin)
+function [S, f_reg, f_load] = hb_nii2gsig(f, G, varargin)
 % HB_NII2GSIG extract graph signal from given input nifti file.
 %
 % Inputs:
