@@ -1,4 +1,4 @@
-function hf = hb_surfplot(x,hemi,atlas,varargin)
+function [hf,Boundary] = hb_surfplot(x,hemi,atlas,varargin)
 % HB_SURFPLOT plot data on cortical surface; an extended wrapper of a
 % modified version of https://github.com/StuartJO/plotSurfaceROIBoundary;
 % see dependencies below.
@@ -75,12 +75,16 @@ opts = processinputs(varargin,inputParser);
 %-Make plot.
 [hf,POS]  = initfig(opts,hemi);
 hf.ax{1}  = axes('Position',POS.Plot1);
-hf.plt{1} = doplot(x, surf, labels, hemi, opts, 'lateral');
+if isempty(opts.Boundary)
+    [hf.plt{1}, opts.Boundary] = doplot(x, surf, labels, hemi, opts, 'lateral');
+else
+    hf.plt{1} = doplot(x, surf, labels, hemi, opts, 'lateral');
+end
 hf.ax{2}  = axes('Position',POS.Plot2);
 hf.plt{2} = doplot(x, surf, labels, hemi, opts, 'medial');
 hf = docolors(opts, x, hf, POS);
 dotitle(hemi, opts, hf);
-
+Boundary = opts.Boundary;
 end
 
 %==========================================================================
@@ -126,6 +130,7 @@ addParameter(d,'DataRange', []);
 addParameter(d,'CamLight', []);
 addParameter(d,'CamView', []); 
 addParameter(d,'ShowLeftRightHemisphereTitle', true); 
+addParameter(d,'Boundary', []); 
 parse(d,optinputs{:});
 opts = d.Results;
 
@@ -287,8 +292,11 @@ POS.Cbar  = C;
 end
 
 %==========================================================================
-function hp = doplot(x, surf, labels, hemi, opts, WhichView)
-hp = plotSurfaceROIBoundary_hb(...
+function [hp,Boundary] = doplot(x, surf, labels, hemi, opts, WhichView)
+if ~isfield(opts, 'Boundary')
+    opts.Boundary = [];
+end
+[hp,~,d] = plotSurfaceROIBoundary_hb(...
     surf,...
     labels,...
     x,...
@@ -296,7 +304,13 @@ hp = plotSurfaceROIBoundary_hb(...
     opts.Colormap,...
     'BoundaryEdgeLineWidth',opts.BoundaryEdgeLineWidth,...
     'BoundaryEdgeColor',opts.BoundaryEdgeColor,...
-    'ColorbarLimits',opts.DataRange);
+    'ColorbarLimits',opts.DataRange,...
+    'Boundary',opts.Boundary);
+if isempty(opts.Boundary)
+    Boundary = d;
+else
+    Boundary = opts.Boundary;
+end
 if isempty(opts.CamLight)
     camlight(80,-10);
     camlight(-80,-10);

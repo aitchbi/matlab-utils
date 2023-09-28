@@ -76,6 +76,7 @@ d = inputParser;
 addParameter(d,'BoundaryEdgeColor',[0 0 0]);
 addParameter(d,'BoundaryEdgeLineWidth',2);
 addParameter(d,'ColorbarLimits',[]);
+addParameter(d,'Boundary',[]);
 parse(d,varargin{:});
 opts = d.Results;
 
@@ -125,11 +126,15 @@ else
 end
 
 % Find the boundaries of the ROIs
-switch boundary_method
-    case 'none'
-BOUNDARY = [];        
-    case {'midpoint','centroid','edge_vertices','faces','edge_faces'}
-BOUNDARY = findROIboundaries(vertices,faces,vertex_id,boundary_method);
+if isempty(opts.Boundary)
+    switch boundary_method
+        case 'none'
+            BOUNDARY = [];
+        case {'midpoint','centroid','edge_vertices','faces','edge_faces'}
+            BOUNDARY = findROIboundaries(vertices,faces,vertex_id,boundary_method);
+    end
+else
+    BOUNDARY = opts.Boundary;
 end
 
 % Set up some options. 

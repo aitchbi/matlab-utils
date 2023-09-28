@@ -1,4 +1,4 @@
-function hb_surfplot_bothhemi(x,atlas,varargin)
+function opts = hb_surfplot_bothhemi(x,atlas,varargin)
 % HB_SURFPLOT_BOTHHEMI same as HB_SURFPLOT.m but showing projection of data
 % on both left and right hemipheres in one figure.
 %
@@ -76,12 +76,18 @@ addParameter(d,'CamView', []);
 addParameter(d,'WhichOrient', 'left-right');
 addParameter(d,'MatchColorbar', true);
 addParameter(d,'ShowLeftRightHemisphereTitle', true);
+addParameter(d,'Boundary', []);
 parse(d,varargin{:});
 opts = d.Results;
 
 if isempty(opts.FigureHandle)
     opts.FigureHandle = figure;
     set(opts.FigureHandle,'Position',[461 462 650 600]);
+end
+
+if isempty(opts.Boundary)
+    opts.Boundary.lh = [];
+    opts.Boundary.rh = [];
 end
 
 switch opts.WhichOrient
@@ -124,7 +130,7 @@ else
         plbl = opts.PlotLabel.lh;
     end
 end
-h{1} = hb_surfplot(x.lh,'lh',atlas,...
+[h{1}, d] = hb_surfplot(x.lh,'lh',atlas,...
     'PlotLabel',plbl,...
     'Colormap',opts.Colormap.lh,...
     'WhichSurf',opts.WhichSurf,...
@@ -139,7 +145,11 @@ h{1} = hb_surfplot(x.lh,'lh',atlas,...
     'CamView', opts.CamView,...
     'FSavgDir', opts.FSavgDir,...
     'FSMatlabDir', opts.FSMatlabDir,...
-    'DataRange', opts.DataRange);
+    'DataRange', opts.DataRange,...
+    'Boundary',opts.Boundary.lh);
+if isempty(opts.Boundary.lh)
+    opts.Boundary.lh = d;
+end
 
 subplot(SBP1,SBP2,2)
 axis off;
@@ -163,7 +173,7 @@ else
         plbl = opts.PlotLabel.rh;
     end
 end
-h{2} = hb_surfplot(x.rh,'rh',atlas,...
+[h{2}, d] = hb_surfplot(x.rh,'rh',atlas,...
     'PlotLabel',plbl,...
     'Colormap',opts.Colormap.rh,...
     'WhichSurf',opts.WhichSurf,...
@@ -178,7 +188,11 @@ h{2} = hb_surfplot(x.rh,'rh',atlas,...
     'CamView', opts.CamView,...
     'FSavgDir', opts.FSavgDir,...
     'FSMatlabDir', opts.FSMatlabDir,...
-    'DataRange',opts.DataRange);
+    'DataRange',opts.DataRange,...
+    'Boundary',opts.Boundary.rh);
+if isempty(opts.Boundary.rh)
+    opts.Boundary.rh = d;
+end
 
 if any(x.lh<0) || any(x.rh<0)
     if opts.OneColorbar
