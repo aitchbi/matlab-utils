@@ -1,14 +1,14 @@
-function [v_o, h_o, C, cost] = hb_nii_match_labels(f_i, f_r, varargin)
+function [v_o, h_o, C, cost] = hb_nii_match_labels(f_i, f_r, f_o, varargin)
 % HB_NII_MATCH_LABELS relables segmentation file f_i to have labels that
 % optimaly match those in f_r. By default, dice score is used as the
 % similarity measure for pairs of segments and the Hungarian matching
 % algorith (munkres) is used to perform assignments.
 % 
 %-Exp 1: pecify output file name
-% hb_nii_match_labels(f_i, f_r, 'OutputFile', 'Path/to/f_o.nii');
+% hb_nii_match_labels(f_i, f_r, 'Path/to/f_o.nii');
 %
 %-Exp 2: overwrite input file
-% hb_nii_match_labels(f_i, f_r, 'OutputFile', f_i); 
+% hb_nii_match_labels(f_i, f_r, f_i); 
 %
 % Dependencies:
 %   hb_nii_load.m
@@ -19,14 +19,13 @@ function [v_o, h_o, C, cost] = hb_nii_match_labels(f_i, f_r, varargin)
 % Hamid Behjat
 
 d = inputParser;
-addParameter(d,'OutputFile', []);
 addParameter(d,'MatchingMethod', 'munkres'); 
 addParameter(d,'SimilarityMeasure', 'dice'); % 'dice', 'centroid'
 parse(d,varargin{:});
 opts = d.Results;
 
 %-[a] Handle inputs.
-[v_i, v_r, h_o] = handleinputs(f_i, f_r, opts);
+[v_i, v_r, h_o] = handleinputs(f_i, f_r, f_o);
 
 %-[b] Handle NaNs & ensure non-negative labels.
 [v_i, BgType] = fixbg(v_i);
@@ -108,17 +107,13 @@ hb_nii_write(h_o, v_o);
 end
 
 %==========================================================================
-function [v_i, v_r, h_o] = handleinputs(f_i, f_r, opts)
+function [v_i, v_r, h_o] = handleinputs(f_i, f_r, f_o)
 [v_i, h_i] = hb_nii_load(f_i);
 [v_r, h_r] = hb_nii_load(f_r);
 assert(all(isequal(h_i.dim,h_r.dim)));
 assert(all(all(abs(h_i.mat-h_r.mat)<1e-6)));
-if isempty(opts.OutputFile)
-    h_o = h_i;
-else
-    h_o = h_i;
-    h_o.fname = opts.OutputFile;
-end
+h_o = h_i;
+h_o.fname = f_o;
 end
 
 %==========================================================================
