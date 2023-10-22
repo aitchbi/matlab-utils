@@ -113,11 +113,10 @@ function [v_i, v_r, h_o] = handleinputs(f_i, f_r, opts)
 [v_r, h_r] = hb_nii_load(f_r);
 assert(all(isequal(h_i.dim,h_r.dim)));
 assert(all(all(abs(h_i.mat-h_r.mat)<1e-6)));
-assert(~isempty(opts.OutputFile));
-
-%-Output file name.
-h_o = h_i;
-if not(strcmp(opts.OutputFile, 'OverwriteInput'))
+if isempty(opts.OutputFile)
+    h_o = h_i;
+else
+    h_o = h_i;
     h_o.fname = opts.OutputFile;
 end
 end
