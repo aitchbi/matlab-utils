@@ -2,9 +2,10 @@ function [v,h] = hb_nii_load(f,varargin)
 %HB_NII_LOAD load nifti volume and header using external software. 
 
 d = inputParser;
-addParameter(d,'HeaderType','spm');
-addParameter(d,'IndicesToLoad',[]);
-addParameter(d,'FramesToLoad',[]);
+addParameter(d,'JustGetHeader', false);
+addParameter(d,'IndicesToLoad', []);
+addParameter(d,'FramesToLoad', []);
+addParameter(d,'HeaderType', 'spm');
 parse(d,varargin{:});
 opts = d.Results;
 
@@ -38,6 +39,10 @@ switch opts.HeaderType
     case 'spm'
         %assert(exist('spm_vol.m','file'),'"spm" package not in path.')
         h = spm_vol(f);
+        if opts.JustGetHeader
+            v = [];
+            return;
+        end
         Nv = length(h);
         if isempty(opts.FramesToLoad)
             frames = 1:Nv;
@@ -62,7 +67,7 @@ switch opts.HeaderType
                     v1d(I) = spm_sample_vol(h(iV),x,y,z,0);
                     v(:,:,:,iF) = reshape(v1d,h1.dim);
                     if Nf>1
-                        showprgs(iF,Nf);
+                        prgs(iF,Nf);
                     end
                 end
             else
@@ -81,7 +86,8 @@ switch opts.HeaderType
 end
 end
 
-function showprgs(n,N)
+%==========================================================================
+function prgs(n,N)
 l = numel(num2str(N));
 if n==1
     fprintf('\n..Loading 4D nifti.. ');
