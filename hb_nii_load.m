@@ -12,9 +12,15 @@ opts = d.Results;
 assert(ischar(f),'Enter absolute address of nifti file.');
 
 if contains(f,'.gz')
-    gunzip(f);
-    f = f(1:end-3);
-    DELNONZIP = true;
+    if exist(f,'file')
+        gunzip(f);
+        DELNONZIP = true;
+    elseif exist(strrep(f,'.gz',''),'file')
+        DELNONZIP = false;
+    else
+        error('File missing: %s',f);
+    end
+    f = strrep(f,'.gz','');
 else
     if exist(f,'file')
         DELNONZIP = false;
