@@ -1,4 +1,4 @@
-function [E, E0, U_pt] = hb_procrustes(U, varargin)
+function [E, E0, U_pt, S, S0] = hb_procrustes(U, varargin)
 % HB_PROCRUSTES computes distance between two vector sets based Procrustes
 % transform (PT). The vector sets are rotated to optimaly match each other.
 % An ensemble measure of cosine similarity between non-matching vectors is
@@ -13,6 +13,8 @@ function [E, E0, U_pt] = hb_procrustes(U, varargin)
 %   E: residual error after PT. 
 %   E0: initial residual error before PT.
 %   U_pt: the PT-ed version of U. 
+%   S: cosine similarity matrix after PT.
+%   S0: cosine similarity matrix before PT.
 % 
 % The residual is the norm of the off-diagonal elements of the cosine
 % similarity matrix between the two set of vectors,  as in Eq (11) in [1].
@@ -45,7 +47,7 @@ Ne = size(U{1},2);
 
 U_pt = zeros(Nv, Ne, 2);
 
-[~, E0] = getcossim(U);
+[S0, E0] = getcossim(U);
 
 E = zeros(Ni,1);
 
@@ -99,7 +101,7 @@ for iIter=1:Ni
         axis image;
         pause(0.5);
     else
-        [~, E(iIter)] = getcossim(U_pt);
+        [S, E(iIter)] = getcossim(U_pt);
     end
 
     if not(opts.Silent)
