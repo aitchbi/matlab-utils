@@ -1,4 +1,4 @@
-function [v_o, h_o, C, cost] = hb_nii_match_labels(f_i, f_r, f_o, varargin)
+function [v_o, h_o, C, cost, lbls, BgType] = hb_nii_match_labels(f_i, f_r, f_o, varargin)
 % HB_NII_MATCH_LABELS relables segmentation file f_i to have labels that
 % optimaly match those in f_r. By default, dice score is used as the
 % similarity measure for pairs of segments and the Hungarian matching
@@ -21,6 +21,8 @@ function [v_o, h_o, C, cost] = hb_nii_match_labels(f_i, f_r, f_o, varargin)
 d = inputParser;
 addParameter(d,'MatchingMethod', 'munkres'); 
 addParameter(d,'SimilarityMeasure', 'dice'); % 'dice', 'centroid'
+addParameter(d,'BackgroundVoxelLabel', []);
+addParameter(d,'DontWrite', false);
 parse(d,varargin{:});
 opts = d.Results;
 
@@ -102,8 +104,11 @@ for k=1:N
 end
 
 %-Write relabelled file.
-hb_nii_write(h_o, v_o);
-
+if opts.DontWrite
+    % just returning volume; no writing. 
+else
+    hb_nii_write(h_o, v_o);
+end
 end
 
 %==========================================================================
