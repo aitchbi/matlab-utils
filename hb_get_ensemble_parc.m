@@ -4,16 +4,18 @@ function [v_pc, v_pb, labels, BgLabel] = hb_get_ensemble_parc(F, varargin)
 %
 % Inputs:
 %   F: a cell array of parcellation (segmentation) filenames from which a
-%   single parcellation map is to be extracted. F{1} is treated as the
-%   reference file, to which the other files are initially "label matched"
-%   via the Hungarian matching algorithm. The label matched files are then
-%   aggregated to obtain a single parcellation file (v_pc) in which each
-%   voxel is assigned the label which is most seen across files, at least
-%   50% of the files. In doing so, some voxels, manily at boundaries of
-%   parcels may not be assigned a label. The ensemble parcellation is
-%   accompanied with a probability map (v_pb), showing the probability of
-%   the assignment of each voxel; a probablity of 1 means that a voxel was
-%   label the same across all files, whereas 0.2 means on 20% of the files.
+%   single parcellation map is to be extracted. By default, F{1} is treated
+%   as the reference file, to which the other files are initially
+%   label-matched via the Hungarian matching algorithm; another file can be
+%   specified as the reference via optional Name-Value input argument
+%   'WhichFileIsReference'. The label matched files are then aggregated to
+%   obtain a single parcellation file (v_pc) in which each voxel is
+%   assigned the label which is most seen across files, at least 50% of the
+%   files. In doing so, some voxels, manily at boundaries of parcels may
+%   not be assigned a label. The ensemble parcellation is accompanied with
+%   a probability map (v_pb), showing the probability of the assignment of
+%   each voxel; a probablity of 1 means that a voxel was label the same
+%   across all files, whereas 0.2 means on 20% of the files.
 %
 % Note: if value of background voxels not specifed via the optional
 % Name-Value input argument 'BackgroundVoxelLabel', the alogorithm will
@@ -32,10 +34,12 @@ function [v_pc, v_pb, labels, BgLabel] = hb_get_ensemble_parc(F, varargin)
 d = inputParser;
 addParameter(d,'MatchingMethod', 'munkres');
 addParameter(d,'SimilarityMeasure', 'dice'); % 'dice', 'centroid'
-addParameter(d,'UnassignedVoxelLabel', []);
-addParameter(d,'BackgroundVoxelLabel', []);
-addParameter(d,'OutputFilenameParc', []);
-addParameter(d,'OutputFilenameProb', []);
+addParameter(d,'UnassignedVoxelLabel', []);  % an integer or NaN
+addParameter(d,'BackgroundVoxelLabel', []);  % an integer or NaN
+addParameter(d,'WhichFileIsReference', []);  % an integer in [1 length(F)] 
+addParameter(d,'OutputFilenameParc', []);    % pathname of file to write
+addParameter(d,'OutputFilenameProb', []);    % pathname of file to write
+
 parse(d,varargin{:});
 opts = d.Results;
 
