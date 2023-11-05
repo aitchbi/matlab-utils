@@ -44,7 +44,11 @@ parse(d,varargin{:});
 opts = d.Results;
 
 %-Reference file.
-f_r = F{1};
+if isempty(opts.WhichFileIsReference)
+    f_r = F{1};
+else
+    f_r = F{opts.WhichFileIsReference};
+end
 [v_r, h_r] = hb_nii_load(f_r);
 
 %-Get label indices.
