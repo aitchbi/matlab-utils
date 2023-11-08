@@ -6,6 +6,7 @@ addParameter(d,'JustGetHeader', false);
 addParameter(d,'IndicesToLoad', []);
 addParameter(d,'FramesToLoad', []);
 addParameter(d,'HeaderType', 'spm');
+addParameter(d,'LoadAsVectors', false);
 parse(d,varargin{:});
 opts = d.Results;
 
@@ -66,12 +67,20 @@ switch opts.HeaderType
                 I = opts.IndicesToLoad;
                 [x,y,z] = ind2sub(h1.dim,I);
                 v1d0 = zeros(prod(h1.dim),1);
-                v = zeros([h1.dim,Nf]);
+                if opts.LoadAsVectors
+                    v = zeros(length(I),Nf);
+                else
+                    v = zeros([h1.dim,Nf]);
+                end
                 for iF=1:Nf
                     iV = frames(iF);
                     v1d = v1d0;
                     v1d(I) = spm_sample_vol(h(iV),x,y,z,0);
-                    v(:,:,:,iF) = reshape(v1d,h1.dim);
+                    if opts.LoadAsVectors
+                        v(:,iF) = v1d(I);
+                    else
+                        v(:,:,:,iF) = reshape(v1d,h1.dim);
+                    end
                     if Nf>1
                         prgs(iF,Nf);
                     end
