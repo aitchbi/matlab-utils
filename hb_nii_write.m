@@ -16,6 +16,7 @@ if endsWith(f, '.nii.gz')
     DoGzip = true;
     f = strrep(f, '.gz', '');
 else
+    DoGzip = false;
     assert(endsWith(f, '.nii'));
 end
 h.fname = f;
