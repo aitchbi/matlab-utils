@@ -1,4 +1,4 @@
-function [E, E0, U_pt, S, S0] = hb_procrustes(U, varargin)
+function [E, E0, U_pt, S, S0, U_avg] = hb_procrustes(U, varargin)
 % HB_PROCRUSTES computes distance between two vector sets based Procrustes
 % transform (PT). The vector sets are rotated to optimaly match each other.
 % An ensemble measure of cosine similarity between non-matching vectors is
