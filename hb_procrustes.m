@@ -28,7 +28,7 @@ function [E, E0, U_pt, S, S0, U_avg] = hb_procrustes(U, varargin)
 
 d = inputParser;
 addParameter(d, 'ApplySaturationCriteria', true);
-addParameter(d, 'MaxNumberOfIterations', 20);
+addParameter(d, 'MaxNumberOfIterations', 2);
 addParameter(d, 'SaturationParam', 1e-2); % in (0 1]
 addParameter(d, 'DebugDisplay', false);
 addParameter(d, 'Silent', true);
