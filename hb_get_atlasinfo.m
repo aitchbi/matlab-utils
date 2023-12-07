@@ -213,5 +213,12 @@ end
 
 ntwinfo.TickNetw = cumsum(ntwinfo.L_ntw)-floor(ntwinfo.L_ntw/2);
 
+
+ntwinfo.I_ntw = cell(1,7);
+for k=1:7
+    d = find(ntwinfo.I_ntwsort==k,1);
+    ntwinfo.I_ntw{k} = d:d+ntwinfo.L_ntw(k)-1;
+end
+
 opts.netwinfo = ntwinfo;
 end
