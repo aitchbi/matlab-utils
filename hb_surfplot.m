@@ -200,7 +200,9 @@ colormap(opts.Colormap);
 if isempty(opts.DataRange)
     assert(nnz(isnan(x))==0, 'Data contains NaNs.')
     %caxis([nanmin(x(:,1)) nanmax(x(:,1))]);
-    caxis([min(x) max(x)]);
+    if min(x)~=max(x)
+        caxis([min(x) max(x)]);
+    end
 else
     caxis(opts.DataRange);
 end
