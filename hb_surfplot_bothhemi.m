@@ -7,8 +7,9 @@ function opts = hb_surfplot_bothhemi(x,atlas,varargin)
 % *******************************************************
 %
 % Inputs: 
-%   x: a structure with fields 'lh' and 'rh', each a vector of values to
-%   plot on left and right hemisphere, respectively.
+%   x: either a vector of length equal to the number of regions in the
+%   atlas, or a structure with fields 'lh' and 'rh', each a vector of
+%   values to plot on left and right hemisphere, respectively.
 %
 %   atlas: atlas e.g. 'Schaefer200Yeo17', 'Glasser360', 'Yeo7', ...
 %
@@ -69,6 +70,7 @@ addParameter(d,'OneColorbar', false);
 addParameter(d,'ColorbarTickLabels', []); % applicable if ColorbarTicks is a vector
 addParameter(d,'ColorbarTicks', []); % a vector, 'none', or [] ([]: default ticks)
 addParameter(d,'FigureHandle', []);
+addParameter(d,'FigureName', []);
 addParameter(d,'DoublePlot', []);
 addParameter(d,'DataRange', []);
 addParameter(d,'CamLight', []);
@@ -80,9 +82,24 @@ addParameter(d,'Boundary', []);
 parse(d,varargin{:});
 opts = d.Results;
 
+switch class(x)
+    case 'struct'
+
+    case 'double'
+        N = floor(length(x)/2);
+        d = x;
+        x = struct;
+        x.lh = d(1:N);
+        x.rh = d(N+1:end);
+end
+
 if isempty(opts.FigureHandle)
     opts.FigureHandle = figure;
-    set(opts.FigureHandle,'Position',[461 462 650 600]);
+    set(opts.FigureHandle, 'Position', [461 462 650 600]);
+end
+
+if not(isempty(opts.FigureName))
+    set(opts.FigureHandle, 'Name', opts.FigureName);
 end
 
 if isempty(opts.Boundary)
