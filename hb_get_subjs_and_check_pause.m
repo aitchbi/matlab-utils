@@ -52,7 +52,11 @@ else
     iEnd = str2double(n_file(d3:end));
 end
 
-I = iSta:iEnd;
+if iEnd>=iSta
+    I = iSta:iEnd;
+else
+    I = iEnd:-1:iSta;
+end
 
 if RunPause
     if PauseLength~=0
