@@ -13,16 +13,12 @@ function [y,L,r,o] = hb_gsig_filt(A,x,g,varargin)
 %   A: graph adjacency matrix.
 %   x: graph signals, one per column. 
 %   g: cell array of spectral kernels. 
-%   cOrds: structure with fields 'kernel' and 'tightframe' each of
-%   length(g), specifying the Chebyshev polynomial order to use for
-%   appriximating each kernel in g. If [], polynomial orders will be
-%   estimated.
 %
 % Outputs: 
 %   y: filtered graph signals, cell array of length size(x,2), each
 %   containing a size(x,1) x length(g) matrix.
-%   cOrds: see above, if not given as input. 
 %   r: spectrum lower and upper range. 
+%   o: see above, if not given as input. 
 %
 % Examples:
 % y = hb_gsig_filt(A,x,g);
@@ -81,6 +77,10 @@ opts = p.Results;
 % [3]: only applicable if [1] is empty
 % [4]: only applicable if [1] is empty
 % [5]: only applicable if [1] is empty & [5] is true. 
+%
+% [1]: structure with fields 'kernel' and 'tightframe' each of length(g),
+% specifying the Chebyshev polynomial order to use for appriximating each
+% kernel in g. If [], polynomial orders will be estimated.
 end
 
 %==========================================================================
