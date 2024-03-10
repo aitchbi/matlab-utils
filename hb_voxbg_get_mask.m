@@ -4,7 +4,7 @@ function f_mask = hb_voxbg_get_mask(graph,varargin)
 %
 % Inputs:
 %   graph: voxel-wise brain graph; graph structure or absolute address to
-%   graph structure save as .mat file.
+%   graph structure save as a .mat file.
 %
 %  Outputs:
 %   f_m: nifit binary mask file, showing indices in 3D volume corresponding
