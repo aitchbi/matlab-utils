@@ -9,14 +9,14 @@ function hb_writegii(X,S,Y,paths,varargin)
 %   Y: Output gifti file to write; e.g.,lh.<file-name>.gii
 %
 %   paths: structure with fields 'freesurfer' and 'sh_asc2gii', which are
-%   paths to freesurfer and sh_asc2gii.sh, respectively.
+%   paths to freesurfer and hb_asc2gii.sh, respectively.
 %
 % Dependencies:
 %   hb_asc2gii.sh [*]
 % 
 % [*]: give execute permision to hb_asc2gii.sh when using thi function for
 % first time. On terminal, cd to the directory where the script is saved
-% and then: chmod u+x sh_asc2gii.sh
+% and then: chmod u+x hb_asc2gii.sh
 % 
 % Hamid Behjat
 
