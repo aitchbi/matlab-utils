@@ -7,6 +7,7 @@ addParameter(d,'IndicesToLoad', []);
 addParameter(d,'FramesToLoad', []);
 addParameter(d,'HeaderType', 'spm');
 addParameter(d,'LoadAsVectors', false);
+addParameter(d,'DuplicateThenUnzip', false);
 parse(d,varargin{:});
 opts = d.Results;
 
@@ -14,21 +15,22 @@ assert(ischar(f),'Enter absolute address of nifti file.');
 
 if contains(f,'.gz')
     if exist(f,'file')
-        gunzip(f);
+        fgz = f;
+        f = dounzip(fgz, opts.DuplicateThenUnzip);
         DELNONZIP = true;
     elseif exist(strrep(f,'.gz',''),'file')
         DELNONZIP = false;
     else
         error('File missing: %s',f);
     end
-    f = strrep(f,'.gz','');
+   
 else
     if exist(f,'file')
         DELNONZIP = false;
     else
         fgz = [f,'.gz'];
         if exist(fgz,'file')
-            gunzip(fgz);
+            f = dounzip(fgz, opts.DuplicateThenUnzip);
             DELNONZIP = true;
         else
             error('File missing: %s',f);
@@ -110,4 +112,23 @@ else
     fprintf(repmat('\b',1,2*l+1),n);
 end
 eval(['fprintf(''%-',num2str(l),'d/%-',num2str(l),'d'',n,N)'])
+end
+
+%==========================================================================
+function t = getrandtag
+t = sprintf('___tmp___%d',round(rand*1e12));
+end
+
+%==========================================================================
+function f = dounzip(fgz, DuplicateThenUnzip)
+if DuplicateThenUnzip
+    fgztmp = strrep(fgz, '.nii', sprintf('%s.nii', getrandtag));
+    copyfile(fgz,fgztmp);
+    fgz = fgztmp;
+end
+gunzip(fgz);
+if DuplicateThenUnzip
+    delete(fgztmp);
+end
+f = strrep(fgz,'.gz','');
 end
