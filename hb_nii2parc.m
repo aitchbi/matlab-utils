@@ -121,9 +121,10 @@ v_i = hb_nii_load(f_i, 'IndicesToLoad', I_msk);
 v_p = hb_nii_load(f_p, 'IndicesToLoad', I_msk);
 
 %-Initialize outputs, etc. 
-if length(size(v_i))==4
+if ndims(v_i)==4
     Nv = size(v_i,4);
 else
+    assert(ndims(v_i)==3);
     Nv = 1;
 end
 l = sort(unique(v_p)); % labels
@@ -333,3 +334,4 @@ else
 end
 eval(['fprintf(''%-',num2str(l),'d/%-',num2str(l),'d'',n,N)'])
 end
+
