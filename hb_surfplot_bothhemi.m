@@ -85,7 +85,7 @@ opts = d.Results;
 switch class(x)
     case 'struct'
 
-    case 'double'
+    case {'double', 'logical'}
         N = floor(length(x)/2);
         d = x;
         x = struct;
@@ -95,7 +95,13 @@ end
 
 if isempty(opts.FigureHandle)
     opts.FigureHandle = figure;
-    set(opts.FigureHandle, 'Position', [461 462 650 600]);
+    switch opts.WhichOrient
+        case 'one-row'
+            d = [50 400 1000 240];
+        case {'top-bottom', 'left-right'}
+            d = [461 462 650 600];
+    end
+    set(opts.FigureHandle, 'Position', d);
 end
 
 if not(isempty(opts.FigureName))
@@ -108,6 +114,9 @@ if isempty(opts.Boundary)
 end
 
 switch opts.WhichOrient
+    case 'one-row'
+        SBP1 = 1;
+        SBP2 = 2;
     case 'top-bottom'
         SBP1 = 2;
         SBP2 = 1;
