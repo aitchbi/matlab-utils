@@ -30,7 +30,7 @@ function [hf,Boundary] = hb_surfplot(x,hemi,atlas,varargin)
 %
 %   BoundaryEdgeLineWidth: a scalar.
 %
-%   WhichSurf: 'pial' | 'white' | 'inflatd'  
+%   WhichSurf: 'pial' | 'white' | 'inflated'  
 %   
 %   PlotLabel: character array; label for plot, to be displayed with the
 %   colorbar.
@@ -145,10 +145,13 @@ function [x,surf,lbls] = processsurfdata(x,hemi,atlas,opts)
 if isempty(opts.BoundaryAtlas)
     atlas_b = atlas; 
 else
-    error('BoundaryAtlas input option yet to be fixed.');
+    %error('BoundaryAtlas input option yet to be fixed.');
     atlas_b = opts.BoundaryAtlas; 
 end
-[surf,lbls] = getatlas(atlas_b,hemi,opts);
+[surf,lbls] = hb_get_surfatlas(atlas_b, hemi, ...
+    opts.FSavgDir, ...
+    opts.WhichSurf, ...
+    'SkipAssertionChecks', opts.SkipAssertionChecks);
 
 if not(isempty(opts.DataRange))
     r = opts.DataRange;
@@ -161,7 +164,10 @@ else
     error('debug/extend.');
 end
 if ~isequal(atlas,atlas_b)
-    [~,lbls_data,Nr_hemi] = getatlas(atlas,hemi,opts);
+    [~,lbls_data,Nr_hemi] = hb_get_surfatlas(atlas,hemi, ...
+    opts.FSavgDir, ...
+    opts.WhichSurf, ...
+    'SkipAssertionChecks', opts.SkipAssertionChecks);
     xx = zeros(size(lbls_data));
     for iR=1:Nr_hemi
         xx(lbls_data==iR) = x(iR);
@@ -187,6 +193,30 @@ if opts.ShowLeftRightHemisphereTitle
                 title(hf.ax{2}, d);
             case 'left-right'
                 title(hf.ax{1}, d, 'FontSize',13);
+            case 'one-row'
+                blank = repmat(' ',1,68);
+                switch hemi
+                    case 'lh'
+                        d = [d, blank];
+                    case 'rh'
+                        d = [blank, d];
+                end
+                title(hf.ax{1}, d, 'FontSize',13);
+
+                % Below I tried to place title as text between the two views.. 
+            % but it didn't work.
+            % x-position is correct but y-position becomes center not top
+            %
+            %case 'one-row'
+            %    xl = xlim(hf.ax{1});
+            %    xr = xl(2)-xl(1);
+            %    x_txt = xl(1)-0.05*xr;
+            %    yl = ylim(hf.ax{1});
+            %    yr = yl(2)-yl(1);
+            %    y_txt = yl(2)-0.01*yr;
+            %    text(hf.ax{1}, x_txt, y_txt, d, ...
+            %        'HorizontalAlignment', 'center', ...
+            %        'FontSize',13);
         end
     end
 end
@@ -201,7 +231,7 @@ if isempty(opts.DataRange)
     assert(nnz(isnan(x))==0, 'Data contains NaNs.')
     %caxis([nanmin(x(:,1)) nanmax(x(:,1))]);
     if min(x)~=max(x)
-        caxis([min(x) max(x)]);
+        caxis([double(min(x)) double(max(x))]); % double(.) since might be logical
     end
 else
     caxis(opts.DataRange);
@@ -249,28 +279,55 @@ if isempty(opts.DoublePlot)
     C  = [0.2 0.2 0.8 0.05];
 else
     switch opts.DoublePlot
-        case 'left-right'
+        case 'one-row'
             switch hemi
                 case 'lh'
-                    PlotL = 0.005;
+                    PlotLeft1 = 0.25;
+                    PlotLeft2 = 0.005;
                 case 'rh'
-                    PlotL = 0.505;
+                    PlotLeft1 = 0.505;
+                    PlotLeft2 = 0.75;
             end
-            P1 = [PlotL 0.57 0.49 0.33];
-            P2 = [PlotL 0.17 0.49 0.33];
+            PlotBottom = 0.26;
+            P1 = [PlotLeft1 PlotBottom 0.24 0.65];
+            P2 = [PlotLeft2 PlotBottom 0.24 0.65];
             if opts.OneColorbar
-                CbarL = 0.1;
-                CbarW = 0.8;
+                CbarLeft  = 0.3;
+                CbarWidth = 0.4;
             else
                 switch hemi
                     case 'lh'
-                        CbarL = 0.05;
+                        CbarLeft = 0.05;
                     case 'rh'
-                        CbarL = 0.55;
+                        CbarLeft = 0.55;
                 end
-                CbarW = 0.4;
+                CbarWidth = 0.4;
             end
-            C = [CbarL 0.1 CbarW 0.02];
+            CbarBottom = 0.17;
+            C = [CbarLeft CbarBottom CbarWidth 0.04];
+
+        case 'left-right'
+            switch hemi
+                case 'lh'
+                    PlotLeft = 0.005;
+                case 'rh'
+                    PlotLeft = 0.505;
+            end
+            P1 = [PlotLeft 0.57 0.49 0.33];
+            P2 = [PlotLeft 0.17 0.49 0.33];
+            if opts.OneColorbar
+                CbarLeft  = 0.1;
+                CbarWidth = 0.8;
+            else
+                switch hemi
+                    case 'lh'
+                        CbarLeft = 0.05;
+                    case 'rh'
+                        CbarLeft = 0.55;
+                end
+                CbarWidth = 0.4;
+            end
+            C = [CbarLeft 0.1 CbarWidth 0.02];
 
         case 'top-bottom'
             error('debug/extend.');
@@ -345,7 +402,7 @@ else
             else
                 view(opts.CamView.(lr))
             end
-        case 'left-right'
+        case {'left-right', 'one-row'}
             switch hemi
                 case 'lh'
                     if isempty(opts.CamView)
@@ -365,36 +422,3 @@ end
 axis image
 axis off
 end
-
-%==========================================================================
-function [surf,labels,Nr_hemi] = getatlas(atlas,hemi,opts)
-param = hb_get_atlasinfo_mini(atlas,hemi);
-n_atlas = param.ParcName;
-Nr_hemi = param.Nr_hemi;
-f_surf = fullfile(opts.FSavgDir,'surf',[hemi,'.',opts.WhichSurf]);
-f_anot = fullfile(opts.FSavgDir,'label',[hemi,'.',n_atlas,'.annot']);
-
-% surface
-surf = struct;
-[surf.vertices, surf.faces, ~] = read_surf(f_surf);
-surf.faces = surf.faces + 1;
-
-% atlas
-[~, labels, coltb] = read_annotation(f_anot);
-for iR=0:Nr_hemi
-    labels(labels==coltb.table(iR+1,5)) = iR;
-end
-
-if not(opts.SkipAssertionChecks)
-    d = unique(labels);
-    assert(isequal(length(d),Nr_hemi+1));
-    if d(1)~=0
-        % In Glasser's atlas, label for medial wall does not match that
-        % given in the colortable, so we fix.
-        assert(d(end-1)==Nr_hemi);
-        assert(~ismember(d(end),1:Nr_hemi));
-        labels(labels==d(end)) = 0;
-    end
-end
-end
-
