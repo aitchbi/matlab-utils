@@ -13,7 +13,7 @@ opts = d.Results;
 
 assert(ischar(f),'Enter absolute address of nifti file.');
 
-if contains(f,'.gz')
+if endsWith(f,'.gz')
     if exist(f,'file')
         fgz = f;
         f = dounzip(fgz, opts.DuplicateThenUnzip);
