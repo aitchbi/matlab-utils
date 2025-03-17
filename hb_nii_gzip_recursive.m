@@ -5,7 +5,7 @@ addParameter(d,'OverwriteExistingGzip',false);
 addParameter(d,'JustGetFileList',false); % no gzip done
 addParameter(d,'ExcludeEndsWith',[]); % [*]
 addParameter(d,'opts',[]); % [**]
-addParameter(d,'UnzipGzipniiZip', false); % !!caution!! [***]
+addParameter(d,'UnzipGzipnii', false); % !!caution!! [***]
 parse(d,varargin{:});
 opts = d.Results;
 
@@ -80,7 +80,7 @@ for k=1:length(F)
 
     elseif endsWith(fk.name, '.zip')
 
-        if opts.UnzipGzipniiZip
+        if opts.UnzipGzipnii
         
             if exist(f,'file')
                 
@@ -88,40 +88,24 @@ for k=1:length(F)
                 d_tmp = fullfile(fk.folder, 'tmpdir_unzip');
                 unzip(f, d_tmp);
 
-                % gzip any nifti files
-                % note that this is done recursively, so if there is
-                % another zip file in the list of extracted files from the
-                % above zip file, that will unziped and processed as part
-                % of hb_nii_gzip_recursive call
+                % delete original zip file
+                if exist(f,'file')
+                    delete(f);
+                end
+
+                % gzip any nifti files in d_tmp, recursively if applicable
                 hb_nii_gzip_recursive(d_tmp, 'opts', opts);
 
-                % delete original zip file 
-                delete(f);
-                
-                % zip the updated contents of the tmp folder
+                % move files out of tmp folder
                 F_tmp = dir(d_tmp);
-                files_tozip = [];
                 for k_tmp=1:length(F_tmp)
-                    fk_tmp = F(k_tmp);
+                    fk_tmp = F_tmp(k_tmp);
                     if ismember(fk_tmp.name, {'.', '..', '.DS_Store'})
                         continue;
                     end
-                    f_tozip = fullfile(fk_tmp.folder, fk_tmp.name);
-                    if exist(f_tozip, 'file')
-                        if isempty(files_tozip)
-                            files_tozip{1} = f_tozip;
-                        else
-                            files_tozip{length(files_tozip)+1} = f_tozip; %#ok<AGROW> 
-                        end
-                    end
-                end
-                zip(f, files_tozip); % zip files to same name as before
-
-                % delete tmp folder and contents
-                for k_dlt=1:length(files_tozip)
-                    f_dlt = files_tozip{k_dlt};
-                    if exist(f_dlt,'file')
-                        delete(f_dlt);
+                    f_mve = fullfile(fk_tmp.folder, fk_tmp.name);
+                    if exist(f_mve, 'file')
+                        movefile(f_mve, fk.folder);
                     end
                 end
 
