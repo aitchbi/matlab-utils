@@ -15,8 +15,8 @@ opts = fixopts(opts);
 %
 % [**] for in-function call see below
 %
-% [***] if true, recursively unzips existing .zip files, gzips any .nii
-% from extracted files, leaves remaining files as they are, zips again
+% [***] if true, recursively unzips existing .zip files into same directory
+% where the zip files is and then gzips any .nii from the extracted files
 
 DryRun = opts.JustGetFileList;
 OWRITE = opts.OverwriteExistingGzip;
