@@ -85,22 +85,79 @@ switch WhichAtlas
         switch WhichAtlas
             case SchaeferYeo7
                 d = getSchYeo7(d);
-                
+
             case SchaeferYeo17
                 d = getSchYeo17(d);
         end
         opts.Nroi = opts.Nroi_hemi*2;
+    
+    case {'DesikanKilliany', 'DK'}
+        d = 'aparc';
+        opts.Nroi_hemi = 35;
+        opts.aparc_label_order.lh  = 1:opts.Nroi_hemi;
+        opts.aparc_label_order.rh  = 1:opts.Nroi_hemi;
+        opts.aparc_label_number.lh = 1000 + opts.aparc_label_order.lh;
+        opts.aparc_label_number.rh = 2000 + opts.aparc_label_order.rh;
+
+    case 'Braak3'
+        opts.Nroi_hemi = 3;
+        d = [];
+
+    case 'Braak5'
+        opts.Nroi_hemi = 5;
+        d = [];
 end
 opts.ParcName = d;
 
-f_lh = fullfile(d_lbls,sprintf('lh.%s.annot',opts.ParcName));
-f_rh = fullfile(d_lbls,sprintf('rh.%s.annot',opts.ParcName));
+switch WhichAtlas
+    case {'Braak3', 'Braak5'}
+        % no annotation file
 
-[~,~,coltb_lh] = read_annotation(f_lh);
-[~,~,coltb_rh] = read_annotation(f_rh);
+    otherwise
+        f_lh = fullfile(d_lbls,sprintf('lh.%s.annot',opts.ParcName));
+        f_rh = fullfile(d_lbls,sprintf('rh.%s.annot',opts.ParcName));
 
-opts.n_seed.lh = coltb_lh.struct_names(2:end);
-opts.n_seed.rh = coltb_rh.struct_names(2:end);
+        [~,~,coltb_lh] = read_annotation(f_lh);
+        [~,~,coltb_rh] = read_annotation(f_rh);
+end
+
+switch WhichAtlas
+    case {'DesikanKilliany', 'DK'}
+        
+        assert(coltb_lh.numEntries==(1 + opts.Nroi_hemi), 'fishy'); % one is the "unknown" label (medial wall)
+        assert(coltb_rh.numEntries==(1 + opts.Nroi_hemi), 'fishy'); % "
+
+        rows_lh = 1 + opts.aparc_label_order.lh;
+        rows_rh = 1 + opts.aparc_label_order.rh;
+
+        opts.n_seed.lh = coltb_lh.struct_names(rows_lh); % region names
+        opts.n_seed.rh = coltb_rh.struct_names(rows_rh);
+
+        opts.aparc_label_color.lh = coltb_lh.table(rows_lh, 5)'; % region color-codes
+        opts.aparc_label_color.rh = coltb_rh.table(rows_rh, 5)';
+
+    case 'Braak3'
+        opts.n_seed.lh = {
+            'Braak-I-II'
+            'Braak-III-IV'
+            'Braak-V-VI'
+            };
+        opts.n_seed.rh = opts.n_seed.lh;
+
+    case 'Braak5'
+        opts.n_seed.lh = {
+            'Braak-I-II'
+            'Braak-III'
+            'Braak-IV'
+            'Braak-V'
+            'Braak-VI'
+            };
+        opts.n_seed.rh = opts.n_seed.lh;
+
+    otherwise
+        opts.n_seed.lh = coltb_lh.struct_names(2:end);
+        opts.n_seed.rh = coltb_rh.struct_names(2:end);
+end
 
 for iSeed=1:opts.Nroi_hemi
     
@@ -119,15 +176,18 @@ for iSeed=1:opts.Nroi_hemi
         case SchaeferYeo7
             d = strrep(d,'7Networks_LH_','');
             d = strrep(d,'_',' ');
+            [inetw, netw] = getnetw(d, Yeo7);
+            opts.n_netw.lh{iSeed} = netw;
+            opts.n_netwnum.lh(iSeed) = inetw;
             
         case SchaeferYeo17
             d = strrep(d,'17Networks_LH_','');
             d = strrep(d,'_',' ');
+        
+        case {'DesikanKilliany', 'DK', 'Braak3', 'Braak5'}
+            % no change
     end
     opts.n_seed.lh{iSeed} = d;
-    [inetw, netw] = getnetw(d, Yeo7);
-    opts.n_netw.lh{iSeed} = netw;
-    opts.n_netwnum.lh(iSeed) = inetw;
     
     d = opts.n_seed.rh{iSeed};
     switch WhichAtlas
@@ -144,29 +204,39 @@ for iSeed=1:opts.Nroi_hemi
         case SchaeferYeo7
             d = strrep(d,'7Networks_RH_','');
             d = strrep(d,'_',' ');
-            
+            [inetw, netw] = getnetw(d, Yeo7);
+            opts.n_netw.rh{iSeed} = netw;
+            opts.n_netwnum.rh(iSeed) = inetw;
+
         case SchaeferYeo17
             d = strrep(d,'17Networks_RH_','');
             d = strrep(d,'_',' ');
+        
+        case {'DesikanKilliany', 'DK', 'Braak3', 'Braak5'}
+            % no change
     end
     opts.n_seed.rh{iSeed} = d;
-    [inetw, netw] = getnetw(d, Yeo7);
-    opts.n_netw.rh{iSeed} = netw;
-    opts.n_netwnum.rh(iSeed) = inetw;
 end
-opts.Yeo7    = Yeo7;
-opts.Yeo7_v2 = Yeo7_v2;
+
+switch WhichAtlas
+    case SchaeferYeo7
+        opts.Yeo7    = Yeo7;
+        opts.Yeo7_v2 = Yeo7_v2;
+
+        opts = get_ntwinfo(opts);
+
+        opts.n_netwnum_cell.lh   = zeros(7, opts.Nroi_hemi);
+        opts.n_netwnum_cell.rh   = zeros(7, opts.Nroi_hemi);
+        for iNetw=1:7
+            opts.n_netwnum_cell.lh(iNetw, :) = opts.n_netwnum.lh==iNetw;
+            opts.n_netwnum_cell.rh(iNetw, :) = opts.n_netwnum.rh==iNetw;
+        end
+    
+    otherwise
+        % extend if needed
+end
 
 %fprintf('\n\n..NOTE: Assuming 1st half of FC is lh and 2nd half is rh.\n\n');
-
-opts = get_ntwinfo(opts);
-
-opts.n_netwnum_cell.lh   = zeros(7, opts.Nroi_hemi);
-opts.n_netwnum_cell.rh   = zeros(7, opts.Nroi_hemi);
-for iNetw=1:7
-    opts.n_netwnum_cell.lh(iNetw, :) = opts.n_netwnum.lh==iNetw;
-    opts.n_netwnum_cell.rh(iNetw, :) = opts.n_netwnum.rh==iNetw;
-end
 end
 
 %==========================================================================
@@ -188,10 +258,11 @@ ntwinfo.I = [
 N_ntw = length(unique(ntwinfo.I));
 
 ntwinfo.L_ntw = zeros(N_ntw,1);
-
+ntwinfo.I_ntw_cell = cell(N_ntw,1); % [29.10.2024]
 ntwinfo.I_sort = [];
 for k=1:N_ntw
     d = find(ntwinfo.I==k);
+    ntwinfo.I_ntw_cell{k} = d;
     ntwinfo.L_ntw(k) = length(d);
     ntwinfo.I_sort = [ntwinfo.I_sort d(:)'];
 end
@@ -214,10 +285,10 @@ end
 ntwinfo.TickNetw = cumsum(ntwinfo.L_ntw)-floor(ntwinfo.L_ntw/2);
 
 
-ntwinfo.I_ntw = cell(1,7);
+ntwinfo.I_ntwsort_cell = cell(1,7);
 for k=1:7
     d = find(ntwinfo.I_ntwsort==k,1);
-    ntwinfo.I_ntw{k} = d:d+ntwinfo.L_ntw(k)-1;
+    ntwinfo.I_ntwsort_cell{k} = d:d+ntwinfo.L_ntw(k)-1; % [29.20.2024] changed from "ntwinfo.I_ntw" to "ntwinfo.I_ntwsort_cell" as otheise its prone to be misinterpretted as unsorted indices. Instead, a "ntwinfo.I_ntw_cell" field now also exists.
 end
 
 opts.netwinfo = ntwinfo;
