@@ -1,4 +1,4 @@
-function [hf,Boundary] = hb_surfplot(x,hemi,atlas,varargin)
+function [hf, Boundary, ColorbarRange] = hb_surfplot(x,hemi,atlas,varargin)
 % HB_SURFPLOT plot data on cortical surface; an extended wrapper of a
 % modified version of https://github.com/StuartJO/plotSurfaceROIBoundary;
 % see dependencies below.
@@ -7,31 +7,31 @@ function [hf,Boundary] = hb_surfplot(x,hemi,atlas,varargin)
 % ***** "preliminary" help; not accurate & thorough *****
 % *******************************************************
 %
-% Inputs: 
-%   x: data to plot on left or right hemisphere. 
+% Inputs:
+%   x: data to plot on left or right hemisphere.
 %
 %   hemi: hemisphere, left ('lh') or right ('rh')
 %
 %   atlas: atlas e.g. 'Schaefer200Yeo17', 'Glasser360', 'Yeo7', ...
 %
-%   Name-Value Pair Arguments (optional): 
+%   Name-Value Pair Arguments (optional):
 %
-%   FSavgDir: absolute path to fsaverage_hb folder. 
+%   FSavgDir: absolute path to fsaverage_hb folder.
 %
-%   FSMatlabDir: absolute path to freesurfer/matlab folder. 
+%   FSMatlabDir: absolute path to freesurfer/matlab folder.
 %
 %   PSROIBDir: absolute path to plotSurfaceROIBoundary_modified.
 %
 %   BoundaryType: 'faces' 'midpoint' 'centroid' 'edge_vertices' 'none'
 %
-%   BoundaryAtlas: 
+%   BoundaryAtlas:
 %
 %   BoundaryEdgeColor: 1x3 vector, with values within [0 1].
 %
 %   BoundaryEdgeLineWidth: a scalar.
 %
-%   WhichSurf: 'pial' | 'white' | 'inflated'  
-%   
+%   WhichSurf: 'pial' | 'white' | 'inflated'
+%
 %   PlotLabel: character array; label for plot, to be displayed with the
 %   colorbar.
 %
@@ -54,12 +54,12 @@ function [hf,Boundary] = hb_surfplot(x,hemi,atlas,varargin)
 %   CamView: [] or struct with fields "left" & "right" (each a 1x2 numeric)
 %
 % Outputs:
-%   h: handles: figure, axes, plots, and colorbar. 
+%   h: handles: figure, axes, plots, and colorbar.
 %
 % Examples:
-% 
 %
-% Dependencies: 
+%
+% Dependencies:
 % .https://github.com/aitchbi/matlab-utils/misc/plotSurfaceROIBoundary_modified
 % .https://github.com/aitchbi/matlab-utils/hb_get_atlasinfo.m
 % ...
@@ -70,19 +70,41 @@ function [hf,Boundary] = hb_surfplot(x,hemi,atlas,varargin)
 opts = processinputs(varargin,inputParser);
 
 %-Process surface data.
-[x, surf, labels] = processsurfdata(x,hemi,atlas,opts);
+DataInfo = struct;
+if isempty(atlas)
+    %-surface map.
+    mw = x.medialwall;
+    surf = struct;
+    surf.vertices = x.surf.vertices;
+    surf.faces    = x.surf.faces;
+    x = x.data;
+    I_notmw = find(not(mw));
+    N_labels = length(I_notmw);
+    labels = zeros(length(x),1);
+    labels(I_notmw) = 1:N_labels;
+    % labels:
+    % zero if medial wall
+    % non-zero integer in [1,N_labels] if not medial wall
+    DataInfo.type = 'vertex';
+    DataInfo.mw = mw; 
+    opts.BoundaryType = 'none'; % no boundaries to plot
+else
+    %-parcellation map.
+    [x, surf, labels] = processsurfdata(x,hemi,atlas,opts);
+    DataInfo.type = 'parcel';
+end
 
 %-Make plot.
 [hf,POS]  = initfig(opts,hemi);
 hf.ax{1}  = axes('Position',POS.Plot1);
 if isempty(opts.Boundary)
-    [hf.plt{1}, opts.Boundary] = doplot(x, surf, labels, hemi, opts, 'lateral');
+    [hf.plt{1}, opts.Boundary] = doplot(x, surf, labels, hemi, opts, 'lateral', DataInfo);
 else
-    hf.plt{1} = doplot(x, surf, labels, hemi, opts, 'lateral');
+    hf.plt{1} = doplot(x, surf, labels, hemi, opts, 'lateral', DataInfo);
 end
 hf.ax{2}  = axes('Position',POS.Plot2);
-hf.plt{2} = doplot(x, surf, labels, hemi, opts, 'medial');
-hf = docolors(opts, x, hf, POS);
+hf.plt{2} = doplot(x, surf, labels, hemi, opts, 'medial', DataInfo);
+[hf, ColorbarRange] = docolors(opts, x, hf, POS);
 dotitle(hemi, opts, hf);
 Boundary = opts.Boundary;
 end
@@ -117,7 +139,7 @@ addParameter(d,'BoundaryType', 'midpoint');
 addParameter(d,'BoundaryAtlas', []);
 addParameter(d,'BoundaryEdgeColor', [0 0 0]);
 addParameter(d,'BoundaryEdgeLineWidth', 1);
-addParameter(d,'WhichSurf', 'inflated'); 
+addParameter(d,'WhichSurf', 'inflated');
 addParameter(d,'SkipAssertionChecks', false);
 addParameter(d,'PlotLabel', 'none');
 addParameter(d,'Colormap', turbo(256));
@@ -128,9 +150,9 @@ addParameter(d,'FigureHandle', []);
 addParameter(d,'DoublePlot', []);
 addParameter(d,'DataRange', []);
 addParameter(d,'CamLight', []);
-addParameter(d,'CamView', []); 
-addParameter(d,'ShowLeftRightHemisphereTitle', true); 
-addParameter(d,'Boundary', []); 
+addParameter(d,'CamView', []);
+addParameter(d,'ShowLeftRightHemisphereTitle', true);
+addParameter(d,'Boundary', []);
 parse(d,optinputs{:});
 opts = d.Results;
 
@@ -143,10 +165,10 @@ end
 function [x,surf,lbls] = processsurfdata(x,hemi,atlas,opts)
 
 if isempty(opts.BoundaryAtlas)
-    atlas_b = atlas; 
+    atlas_b = atlas;
 else
     %error('BoundaryAtlas input option yet to be fixed.');
-    atlas_b = opts.BoundaryAtlas; 
+    atlas_b = opts.BoundaryAtlas;
 end
 [surf,lbls] = hb_get_surfatlas(atlas_b, hemi, ...
     opts.FSavgDir, ...
@@ -164,17 +186,31 @@ else
     error('debug/extend.');
 end
 if ~isequal(atlas,atlas_b)
-    [~,lbls_data,Nr_hemi] = hb_get_surfatlas(atlas,hemi, ...
-    opts.FSavgDir, ...
-    opts.WhichSurf, ...
-    'SkipAssertionChecks', opts.SkipAssertionChecks);
+    [~,lbls_data,~, lbls_unique] = hb_get_surfatlas(atlas,hemi, ...
+        opts.FSavgDir, ...
+        opts.WhichSurf, ...
+        'SkipAssertionChecks', opts.SkipAssertionChecks);
     xx = zeros(size(lbls_data));
-    for iR=1:Nr_hemi
-        xx(lbls_data==iR) = x(iR);
+    slu = sort(lbls_unique);
+    slu = setdiff(slu,0);
+    nslu = length(slu);
+    assert(length(x)==nslu);
+    for iR=1:nslu
+        sluir = slu(iR);
+        assert(sluir~=0);
+        xx(lbls_data==sluir) = x(iR);
     end
     x = xx(:);
+    if ~isequal(nnz(x==0), nnz(lbls==0))
+        lbls(x==0) = 0; % -NOTE-
+        % -NOTE- [16.11.2024] some labels not related to medial wall may have
+        % been assigned to 0 in "atlas" e.g. in Braak5 wherein 3 DK atals
+        % regions are not asigned to single Braak Stages as they fall between
+        % two stages. Without this fix the plot will have issues as some labels
+        % will get merged into another one e.g. when plotting Braak5 using
+        % Schaefer as bouandry atlas.
+    end
 end
-
 end
 %==========================================================================
 function dotitle(hemi,opts,hf)
@@ -188,53 +224,51 @@ if opts.ShowLeftRightHemisphereTitle
     if isempty(opts.DoublePlot)
         text(hf.ax{1}.XLim(2),hf.ax{1}.YLim(2),d)
     else
+        d = sprintf('%s\n',d); % \n: extra line for additional space bw title and plot, e.g. to ease cropping of png
         switch opts.DoublePlot
             case 'top-bottom'
-                title(hf.ax{2}, d);
+                title(hf.ax{2}, d, 'FontSize',13); 
             case 'left-right'
                 title(hf.ax{1}, d, 'FontSize',13);
             case 'one-row'
-                blank = repmat(' ',1,68);
-                switch hemi
-                    case 'lh'
-                        d = [d, blank];
-                    case 'rh'
-                        d = [blank, d];
-                end
                 title(hf.ax{1}, d, 'FontSize',13);
 
-                % Below I tried to place title as text between the two views.. 
-            % but it didn't work.
-            % x-position is correct but y-position becomes center not top
-            %
-            %case 'one-row'
-            %    xl = xlim(hf.ax{1});
-            %    xr = xl(2)-xl(1);
-            %    x_txt = xl(1)-0.05*xr;
-            %    yl = ylim(hf.ax{1});
-            %    yr = yl(2)-yl(1);
-            %    y_txt = yl(2)-0.01*yr;
-            %    text(hf.ax{1}, x_txt, y_txt, d, ...
-            %        'HorizontalAlignment', 'center', ...
-            %        'FontSize',13);
+                % Below I tried to place title as text between the two views..
+                % but it didn't work.
+                % x-position is correct but y-position becomes center not top
+                %
+                %case 'one-row'
+                %    xl = xlim(hf.ax{1});
+                %    xr = xl(2)-xl(1);
+                %    x_txt = xl(1)-0.05*xr;
+                %    yl = ylim(hf.ax{1});
+                %    yr = yl(2)-yl(1);
+                %    y_txt = yl(2)-0.01*yr;
+                %    text(hf.ax{1}, x_txt, y_txt, d, ...
+                %        'HorizontalAlignment', 'center', ...
+                %        'FontSize',13);
         end
     end
 end
 end
 
 %==========================================================================
-function hf = docolors(opts,x,hf,POS)
+function [hf, cr] = docolors(opts,x,hf,POS)
 opts.Colormap(opts.Colormap<0) = 0;
 opts.Colormap(opts.Colormap>1) = 1;
 colormap(opts.Colormap);
 if isempty(opts.DataRange)
     assert(nnz(isnan(x))==0, 'Data contains NaNs.')
     %caxis([nanmin(x(:,1)) nanmax(x(:,1))]);
-    if min(x)~=max(x)
-        caxis([double(min(x)) double(max(x))]); % double(.) since might be logical
+    if min(x)==max(x)
+        cr = [0 0];
+    else
+        cr = [double(min(x)) double(max(x))]; % double(.) since might be logical
+        caxis(cr); 
     end
 else
     caxis(opts.DataRange);
+    cr = opts.DataRange;
 end
 hf.c = colorbar('Location','southoutside');
 set(hf.c, 'Position',POS.Cbar, 'FontSize',13);
@@ -351,25 +385,72 @@ POS.Cbar  = C;
 end
 
 %==========================================================================
-function [hp,Boundary] = doplot(x, surf, labels, hemi, opts, WhichView)
+function [hp, Boundary] = doplot(x, surf, labels, hemi, opts, WhichView, DataInfo)
 if ~isfield(opts, 'Boundary')
     opts.Boundary = [];
 end
-[hp,~,d] = plotSurfaceROIBoundary_hb(...
-    surf,...
-    labels,...
-    x,...
-    opts.BoundaryType,...
-    opts.Colormap,...
-    'BoundaryEdgeLineWidth',opts.BoundaryEdgeLineWidth,...
-    'BoundaryEdgeColor',opts.BoundaryEdgeColor,...
-    'ColorbarLimits',opts.DataRange,...
-    'Boundary',opts.Boundary);
-if isempty(opts.Boundary)
-    Boundary = d;
-else
-    Boundary = opts.Boundary;
+
+switch DataInfo.type
+
+    case {'parcel', 'vertex'}
+
+        [hp,~,d] = plotSurfaceROIBoundary_hb(x, labels, surf, opts);
+
+        if isempty(opts.Boundary)
+            Boundary = d;
+        else
+            Boundary = opts.Boundary;
+        end
+
+    case 'vertex-old'
+
+        if 1
+            colorFaceBoundaries = 0;
+            face_color_method = 'interp';
+            vertex_id = labels;
+            d = x(not(DataInfo.mw));
+            climits = [min(d) max(d)];
+
+            FaceVertexCData = ...
+                makeFaceVertexCData_hb(x,...
+                surf.vertices,...
+                surf.faces,...
+                vertex_id, ...
+                x,...
+                opts.Colormap,...
+                climits,...
+                colorFaceBoundaries);
+
+            hp = patch(surf);
+            set(hp,...
+                'FaceVertexCData',FaceVertexCData,...
+                'EdgeColor','none',...
+                'FaceColor',face_color_method,...
+                'Clipping','off');
+            hp.FaceLighting = 'gouraud';
+
+            material dull
+
+            Boundary = opts.Boundary;
+        else
+            error('pasted to debug but skipped as above worked; delete');
+            [hp,~,d] = plotSurfaceROIBoundary_hb(x,labels,surf,opts);
+            %opts.BoundaryType,...
+             %   opts.Colormap,...
+              %  'BoundaryEdgeLineWidth',opts.BoundaryEdgeLineWidth,...
+               % 'BoundaryEdgeColor',opts.BoundaryEdgeColor,...
+                %'ColorbarLimits',opts.DataRange,...
+                %'Boundary',opts.Boundary);
+
+            if isempty(opts.Boundary)
+                Boundary = d;
+            else
+                Boundary = opts.Boundary;
+            end
+
+        end
 end
+
 if isempty(opts.CamLight)
     camlight(80,-10);
     camlight(-80,-10);
