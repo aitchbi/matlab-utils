@@ -211,7 +211,7 @@ for iG=1:Ng
         G.lmax = sgwt_rough_lmax(G.L);
     end
     if not(isfield(G,'dim'))
-        f_tmp = fileparts(mfilename("fullpath"),'tmp_mask.nii');
+        f_tmp = fullfile(fileparts(mfilename("fullpath")),'tmp_mask.nii');
         d = hb_voxbg_get_mask(G,'Overwrite',false,'OutputFile',f_tmp);
         assert(isequal(d,f_tmp));
         G.dim = spm_vol(hb_gunzip(d)).dim;
