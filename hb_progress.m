@@ -1,7 +1,7 @@
 function hb_progress(n,N,varargin)
 % HB_PROGRESS displays progress.
 %
-% Hamid Behjat 
+% h behjat 
 
 d = inputParser;
 addParameter(d,'init',0);
