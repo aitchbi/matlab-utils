@@ -1,17 +1,17 @@
 function [sts,log] = hb_call_fsl(cmd,fsldir)
 %HB_CALL_FSL initiates FSL, then calls the requested command.
 %
-% Inputs:
+% inputs:
 %   cmd: FSL command as you would input in Terminal. 
 %
-%   fsldir: If FSL is already installed, this input is not needed,
+%   fsldir: if FSL is already installed, this input is not needed,
 %   otherwise, specify.
 %
-% Examples:
+% examples:
 % hb_call_fsl('fast -v /absolute/file/path/t1w.nii');
 % hb_call_fsl('fast -v /a/b/c/t1w.nii','/usr/local/fsl');
 %
-% Hamid Behjat
+% h behjat
 
 if ~exist('fsldir','var')
     fsldir = [];
