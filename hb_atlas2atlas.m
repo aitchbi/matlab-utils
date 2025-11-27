@@ -4,7 +4,7 @@ function [y, yy, xlhrh] = hb_atlas2atlas(x, atlas_x, atlas_y, d_fsavg, varargin)
 % yy: surface vertex values associated to each parcel in atlas_y
 % xlhrh: surface vertex map
 %
-% Hamid Behjat 
+% h behjat
 
 d = inputParser;
 addParameter(d,'Hemisphere', []);
