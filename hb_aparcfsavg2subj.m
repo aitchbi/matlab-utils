@@ -1,18 +1,18 @@
 function [f_surfrois, parcinfo] = hb_aparcfsavg2subj(f_rois,opts,varargin)
-% 1. Project parcellation atlas* fr fsaverage to subject; .sh script.
-% 2. Project surface labels to volume.
-% 3. Assign label to voxels within ribbon not labelled in 2.
-% 4. Merge lh and rh to get a single labelled map.
-% 5. Also build 4D version of 4.
+% 1. project parcellation atlas* fr fsaverage to subject; .sh script.
+% 2. project surface labels to volume.
+% 3. assign label to voxels within ribbon not labelled in 2.
+% 4. merge lh and rh to get a single labelled map.
+% 5. also build 4D version of 4.
 %
 % * e.g. Glassers, Schaefer's, etc.
 %
 %
-% Dependencies:
+% dependencies:
 %   .FreeSurfer
 %   .github/aitchbi/matlab-utils
 %
-% HB
+% h behjat
 
 p = inputParser;
 addParameter(p, 'JustGetSurfaceParcellation', false);
