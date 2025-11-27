@@ -1,16 +1,16 @@
 function [A, I, mask] = hb_build_mesh_graph(mask, conn)
 % HB_GET_MESH_GRAPH builds adjacency matrix of a mesh graph from a 3D mask.
 % 
-% Inputs: 
+% inputs: 
 %   mask: binary numeric 3D array or a nifti file; if the latter, file will
 %   be made binary if after loading if not already so.
 %
 %   conn: neighbourhood connectivity in 3D; 6, 8, or 26.
 %
-% Output:
+% output:
 %   A: mesh graph adjacency matrix; a sparse matrix.  
 %
-% Hamid Behjat
+% h behjat
 
 if ischar(mask)
     d1 = endsWith(mask, '.nii');
