@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# This is a wrapper function around FreeSurfer command "mri_convert". 
-# To be use e.g. for system calls from MATLAB.
+# a wrapper function around FreeSurfer command "mris_convert". 
+# to be use e.g. for system calls from MATLAB.
 
 usage() { echo "Usage: $0 \
 [-d <string: abolute address of subjects dir>] \
@@ -10,7 +10,7 @@ usage() { echo "Usage: $0 \
 [-o <string: output file absolute address (e.g. */lh.pial.gii or */lh.white.gii)>] \
 " 1>&2; exit 1; }
 
-#-Check inputs.
+#-check inputs.
 while getopts d:r:i:o: flag; 
 do
     case "${flag}" in
@@ -22,15 +22,15 @@ do
     esac
 done
 
-[ -z "$INPUT" ] && { echo "Input file not specified."; usage;}
-[ -z "$OUTPUT" ] && { echo "Output file not specified."; usage;}
+[ -z "$INPUT" ] && { echo "input file not specified."; usage;}
+[ -z "$OUTPUT" ] && { echo "output file not specified."; usage;}
 
 #-FreeSurfer setup.
 export SUBJECTS_DIR=$SUBJ_DIR
 export FREESURFER_HOME=$FS_HOME
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
 
-# convert file
+#-convert.
 mris_convert --cras_add $INPUT $OUTPUT
 
 # --cras_add: if not used, surface will not match to volume, at on FSLeyes.
