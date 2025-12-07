@@ -2,12 +2,12 @@ function [v_o,n,f,v_rm] = hb_make_connected(v,conn)
 % HB_MAKE_CONNECTED makes input bw array connected; the largest component
 % will be kept and the remainder of pixels/voxels will be deleted.
 % 
-% Inputs:
+% inputs:
 %   v: bw 2D/3D array, or absolute address of a nifti, or spm_vol header. 
 %
 %   conn: 4 or 8 for 2D. 6, 18 or 26 for 3D; see bwconncomp.m for details.
 %
-% Outputs:
+% outputs:
 %   v_o: connected bw array. 
 %
 %   n: number of elements removed to make array connected.
@@ -16,7 +16,7 @@ function [v_o,n,f,v_rm] = hb_make_connected(v,conn)
 %
 %   v_rm: bw array showing removed elements: v == or(v_o,v_rm); 
 %
-% Hamid Behjat 
+% h behjat 
 
 if ischar(v)
     v = hb_nii_load(v);
