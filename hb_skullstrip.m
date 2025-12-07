@@ -1,9 +1,11 @@
 function hb_skullstrip(f_t1, f_t1brain, varargin)
 % HB_SKULLSTRIP strips away the skull from a T1 image.
+%
+% h behjat
 
 p = inputParser;
 addParameter(p,'Method','FSL');
-addParameter(p,'PathFSL',[]);
+addParameter(p,'Path_fsl',[]);
 parse(p,varargin{:});
 opts = p.Results;
 
@@ -13,11 +15,11 @@ end
 
 [f_tmp, d_tmp] = duplicatet1(f_t1);
 
-%-Strip.
+%-strip.
 switch opts.Method
     case 'FSL'
         try
-            stripskull(f_tmp, f_t1brain, opts.PathFSL);
+            stripskull(f_tmp, f_t1brain, opts.Path_fsl);
         catch ME
             disp(ME);
             if exist(f_t1brain, 'file')
@@ -33,7 +35,7 @@ switch opts.Method
         error('extend');
 end
 
-%-Cleanup.
+%-cleanup.
 d = fileparts(f_t1brain);
 F = dir(d);
 for k=1:length(F)
@@ -65,10 +67,10 @@ end
 if endsWith(f_t1brain, '.nii.gz')
     f_t1brain = strrep(f_t1brain, '.nii.gz', '.nii');
 end
-fprintf('\n..Skull stripping.. ');
+fprintf('\n..stripping skull.. ');
 f_fslbet = hb_fsl_get_func(d_fsl, 'bet');
 cmd = sprintf('%s %s %s -B', f_fslbet, f_t1, f_t1brain);
-hb_runcmd(cmd,'Error in FSL bet skull stripping.');
+hb_runcmd(cmd,'error in FSL bet skull stripping.');
 h = spm_vol(f_t1brain);
 v = spm_read_vols(h);
 h.descrip = [h.descrip, ' | skull-stripped with FSL bet -B'];
