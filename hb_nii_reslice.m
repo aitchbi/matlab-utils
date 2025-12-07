@@ -1,12 +1,12 @@
 function f_o = hb_nii_reslice(f_i, f_r, interp, f_o, SilentMode, FilesInReadOnlyDir, RegisterThenReslice)
-%HB_NII_RESLICE Coregisteres an input volume to a given reference volume,
+%HB_NII_RESLICE coregisteres an input volume to a given reference volume,
 % and then reslices the volume so that the volume dimentions match,
 % resulting in a one-to-one correspondence between the voxels of the output
-% volume and the reference volume. The new resampled volume is written to
+% volume and the reference volume. the new resampled volume is written to
 % the directory of the input volume, unless name of output file specified.
 %
-% Inputs:
-%   f_i: file to reslice; full path. See NOTE1. 
+% inputs:
+%   f_i: file to reslice; full path. see NOTE 1. 
 %
 %   f_r: file to use as ref for resolution & coregistration; full path.
 %
@@ -17,32 +17,32 @@ function f_o = hb_nii_reslice(f_i, f_r, interp, f_o, SilentMode, FilesInReadOnly
 %   SilentMode: (optional) skip outputing info & also block SPM banners.
 %
 %   FilesInReadOnlyDir: (optional) 1x2 logical array, specifying wherther
-%   f_i and/or of f_r are in read-only directories, respectively. Default:
+%   f_i and/or of f_r are in read-only directories, respectively; default:
 %   [false false].
 %
-%   RegisterThenReslice: (optional) logical. If true, f_i will first be
-%   registered to f_r, and then, it will be resliced. Default: false.
+%   RegisterThenReslice: (optional) logical. if true, f_i will first be
+%   registered to f_r, and then, it will be resliced; default: false.
 %
-% Outputs:
+% outputs:
 %   f_o: resliced file; full path. 
 %
-%   --NOTE1: To reslice multiple files, input f_i as a cell array of file
+%   --NOTE 1: to reslice multiple files, input f_i as a cell array of file
 %   paths; the first file will be used for regiteration to f_r (e.g. an
 %   anatomical) whereas the other files will be resliced based on the
-%   header-of/registeration-obtained-based-on the first image. This option,
+%   header-of/registeration-obtained-based-on the first image. this option,
 %   i.e., multiple input files, makes most sense to use when
 %   RegisterThenReslice = true, in which case, a registeration will be
 %   obtained based on the first image, and will then be used to reslice all
 %   the files (multiple anatomical files, functional, PET, etc.; whatever
 %   is originally in register with teh firt image).
 %
-% Example usage:
+% example usage:
 %   h_o = hb_nii_reslice(f_i,f_r);
 %   hb_nii_reslice(f_i,f_r,1,f_o);
 %   hb_nii_reslice(f_i,f_r,1,[],1);
 %   hb_nii_reslice(f_i,f_r,1,f_o,[],[0 1]);
 %
-% Example scenarios: 
+% example scenarios: 
 %
 % [Exp-1] if both input files (f_i and f_r) are in writable directory: 
 %
@@ -63,20 +63,20 @@ function f_o = hb_nii_reslice(f_i, f_r, interp, f_o, SilentMode, FilesInReadOnly
 % [Exp-5] first register, then reslice
 %         hb_nii_reslice(f_i, f_r, [], f_o, [], [], 1); 
 % 
-% Cautionary note on Example [Exp-4]: the auto-naming of output is based on
-% two things: i) name of f_i, ii) the voxel resolution of f_r. Therefore,
+% cautionary note on Example [Exp-4]: the auto-naming of output is based on
+% two things: i) name of f_i, ii) the voxel resolution of f_r. therefore,
 % for an input f_i, if running the function more than once for two or more
 % different f_r that have same voxel resolution (no matter if their names
 % differ), output files will be overwritten because the auto-generated
 % names will be the same.
 %
-% Dependencies:
+% dependencies:
 %   SPM12: https://www.fil.ion.ucl.ac.uk/spm/software/spm12
 %   spm_run_coreg_hb.m [*]
 %   spm_reslice_hb.m [*]
 %   [*] https://github.com/aitchbi/matlab-utils/tree/main/spm_modified
 %
-% Hamid Behjat
+% h behjat
 
 if ~exist('interp','var') || isempty(interp)
     interp = 1;
@@ -135,7 +135,7 @@ if N_others>0
     end
 end
 
-%-Define output file name if not given.
+%-define output file name if not given.
 %--------------------------------------------------------------------------
 if isempty(f_o)
     
@@ -191,7 +191,7 @@ elseif endsWith(f_o, '.gz')
     GzipOutput = true;
 end
 
-%-Use temporary working directory & handle gzips.
+%-use temporary working directory & handle gzips.
 %--------------------------------------------------------------------------
 if any(FilesInReadOnlyDir)
     
@@ -217,7 +217,7 @@ end
 
 [f_i, ~, cleanup_i] = handlegzip(f_i);
 
-%-Define & run job. 
+%-define & run job. 
 %--------------------------------------------------------------------------
 job.ref = {strcat(f_r,',1')};
 
@@ -267,7 +267,7 @@ if N_others>0
     end
 end
 
-%-Cleanups.
+%-cleanups.
 %--------------------------------------------------------------------------
 if cleanup_i
     delete(f_i);
