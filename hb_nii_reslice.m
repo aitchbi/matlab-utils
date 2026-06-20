@@ -101,6 +101,12 @@ if ~exist('RegisterThenReslice', 'var') || isempty(RegisterThenReslice)
     RegisterThenReslice = false;
 end
 
+% registration modifies source headers in place. force use of temporary
+% copies to preserve all input files.
+if RegisterThenReslice
+    FilesInReadOnlyDir(1) = true;
+end
+
 if ~SilentMode
     fprintf('\n Interpolation order used for reslicing: %d \n',interp); 
 end
@@ -205,13 +211,18 @@ if any(FilesInReadOnlyDir)
         f_i = cp2twd(f_i, TWD);
     end
     
+    if RegisterThenReslice && N_others>0
+        for k = 1:N_others
+            f_others{k} = cp2twd(f_others{k}, TWD);
+        end
+    end
+
     if FilesInReadOnlyDir(2)
         f_r = cp2twd(f_r, TWD);
     end
 else
     TWD = [];
 end
-
 
 [f_r, ~, cleanup_r] = handlegzip(f_r);
 
