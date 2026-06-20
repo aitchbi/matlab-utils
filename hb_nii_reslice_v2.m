@@ -110,6 +110,12 @@ if ~isempty(opts.RegisterationMatrix)
     end
 end
 
+% registration modifies source headers in place. force use of temporary
+% copies to preserve all input files.
+if opts.RegisterThenReslice
+    opts.InputFilesInReadOnlyDir(1) = true;
+end
+
 assert(or(ischar(f_i), iscell(f_i)));
 % char: single file path
 % cell: array of file paths
@@ -167,6 +173,12 @@ if any(opts.InputFilesInReadOnlyDir)
         f_i = cp2twd(f_i, TWD);
     end
     
+    if opts.RegisterThenReslice && N_others>0
+        for k = 1:N_others
+            f_others{k} = cp2twd(f_others{k}, TWD);
+        end
+    end
+
     if opts.InputFilesInReadOnlyDir(2)
         f_r = cp2twd(f_r, TWD);
     end
