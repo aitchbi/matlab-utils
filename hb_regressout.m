@@ -8,13 +8,13 @@ function X = hb_regressout(X,R,runpar,Np,I)
 %   runpar: (optional) run in parallel over columns in X. (default: false)
 %   Np: (optional) number of parallel workers to use; default: use max number
 %   available as determined by gcp. 
-%   I: logical vector of length size(X,2), specifying which nodes to
-%   operate on and which ones to skip. 
+%   I: logical vector of length size(X,2), specifying which columns in X to
+%   operate on and which ones to skip.
 %
 % Outputs:
 %   X: X after regressing out effects from regressors.  
 %
-% Hamid Behjat
+% h behjat
 
 if ~exist('runpar','var') || isempty(runpar)
     runpar = false; % spmd didn't work so well with HCP rest as X
