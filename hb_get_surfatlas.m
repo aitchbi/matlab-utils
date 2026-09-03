@@ -37,7 +37,7 @@ switch atlas
         param = hb_get_atlasinfo_mini(atlas,hemi);
         n_atlas = param.ParcName;
         Nr_hemi = param.Nr_hemi;
-        lbls    = param.lbls;
+        lbls    = 1:Nr_hemi; %param.lbls;
 end
 
 f_surf = fullfile(FSavgDir,'surf',[hemi,'.',WhichSurf]);
