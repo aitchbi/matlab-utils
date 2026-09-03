@@ -118,6 +118,6 @@ end
 
 %==========================================================================
 function v = getvoxvol(hmat)
-r = hb_get_voxres(hmat);
+r = hb_get_voxres_v0(hmat);
 v = prod(r); % voxel volume in mm^3
 end
