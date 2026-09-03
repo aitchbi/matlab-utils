@@ -1,16 +1,16 @@
 function p = hb_parfor_prepare(L,varargin)
-%HB_PARFOR_PREPARE initiates a parallel pool. The number of workers will be
+%HB_PARFOR_PREPARE initiates a parallel pool. the number of workers will be
 %the maximum number of workers available on the local profile, unless L
-%(length of for loop) is smaller than that. In the latter case, the size of
-%the pool will be equal to L. If second input is provided, i.e., desired
+%(length of for loop) is smaller than that. in the latter case, the size of
+%the pool will be equal to L. if second input is provided, i.e., desired
 %size of pool, the size of the initiated pool will be equal or smaller to
 %that value.
 %
-% Inputs: 
+% inputs: 
 %   L: length of for loop to run in parallel.
 %   varargin{1}: desired parpool size.
 %
-% Hamid Behjat
+% h behjat
 
 if nargin<2
     Np = [];
