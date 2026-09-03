@@ -1,57 +1,57 @@
 function f_o = hb_nii_resample(f_i,res,varargin)
-%HB_NII_RESAMPLE Resamples an input nifti volume to a new resolution. 
-% The new resampled volume is written to the directory of the input volume,
+%HB_NII_RESAMPLE resamples an input nifti volume to a new resolution. 
+% the new resampled volume is written to the directory of the input volume,
 % unless name of output file is specified.
 %
-% Inputs:
+% inputs:
 %   f_i: input file name, full address *.nii or *nii.gz.
 %
-%   res: resolution to resample f_i, in mm. Scalar value for isotropic
+%   res: resolution to resample f_i, in mm. scalar value for isotropic
 %   resolution voxels, or 3x1 vector for non-isotropic resolution.
 %
-%   Name-Value Pair Arguments: 
+%   name-value pair arguments: 
 %   'InterOrder': interpolation order; see spm_sample_vol.m or
 %   spm_slice_vol.m for details. [default: 1]
 %
 %   'OutputFile': output file name, absolute address.
 %
 %   'Method': resampling approach; 'approach1' that works in 3D [sample by
-%   sample] or 'approach2' that works in 2D [slice by slice]. Results from
+%   sample] or 'approach2' that works in 2D [slice by slice]. results from
 %   both approaches should be identical.
 %
 %   'InterpOrder': interpolation order. 
 % 
 %   'MemroySafe': logical; applicable to 'approach1'. 
 %
-% Outputs:
+% outputs:
 %   f_o: absolute address of output file to be saved (.nii or .nii.gz
-%   fromat). If not given, the name will be generated based on input file
+%   fromat). if not given, the name will be generated based on input file
 %   name, and the file will have the same format as that the input file.
 %
 % NOTES:
 % approach1 slower than approach1, if memroySafe=true. In general,
 % {'approach1',memorySafe=true}, {'approach1',memorySafe=false],
-% {'approach2'} are all pretty fast. Computation time for instance for
+% {'approach2'} are all pretty fast. computation time for instance for
 % 0.7mm^3 to 1.25mm^3 around 0.3 secs.
 %
-% Example:
+% example:
 % f_o = hb_nii_resample(f_i,1.25);
 %
-% Dependencies: 
-%   From SPM12: 
+% dependencies: 
+%   from SPM12: 
 %     spm_sample_vol.m
 %     spm_slice_vol.m
 %
-% See also: 
+% see also: 
 %   hb_nii_reslice.m
 %
-% Hamid Behjat
+% h behjat
 
 d = inputParser;
-addParameter(d,'Method','approach1');
-addParameter(d,'InterpOrder',1);
-addParameter(d,'MemorySafe',true);
-addParameter(d,'OutputFile',[]);
+addParameter(d, 'Method', 'approach1');
+addParameter(d, 'InterpOrder', 1);
+addParameter(d, 'MemorySafe', true);
+addParameter(d, 'OutputFile', []);
 parse(d,varargin{:});
 opts = d.Results;
 
@@ -185,7 +185,7 @@ switch opts.Method
         
 end
 
-%-Return file in desired format.
+%-return file in desired format.
 d = h_o.fname;
 switch OutPutFileFormat
     case 'nii'
@@ -196,26 +196,26 @@ switch OutPutFileFormat
         delete(d);
 end
 
-%-Cleanup.
+%-cleanup.
 if CleanUpInputNii
     delete(f_i);
 end
 
-% NOTE 1 ------------------------------------------------------------------
+% NOTE 1
 % pinfo[1] is the scaling factor. pinfo[2] is the offset value. By default,
 % these should be 1 and 0, respectively. If they are not, I am not sure how
 % this affect the resulting resampled volume. Should these values also be
 % modified?
-
-% NOTE 2 ------------------------------------------------------------------
-% The output image voxel coordinates are first transformed to the milimeter
+%
+% NOTE 2
+% the output image voxel coordinates are first transformed to the milimeter
 % space using h_o.mat, and then from milimeter space to voxel cooridinates
-% of the input image. The resulting voxel coordinates, which will be non
+% of the input image. the resulting voxel coordinates, which will be non
 % integers, will be positions at which the input image should be sampled
 % at, and the resulting values will be assigned to the output image.
 % Mathwise:
 %
-% Let, 
+% let, 
 % 1) M_i   = h_i.mat
 % 2) M_o   = h_o.mat
 % 3) VC_o  = 4xN matrix, where the first 3 elements of each column gives
@@ -226,7 +226,7 @@ end
 % resampled at these values to obtain the voxel values of the output image.
 % VC_mm = 4xN matrix, giving the correspoding coordinates in mm space.
 %
-% Then, 
+% then, 
 % VC_mm = M_o * VC_o;
 % VC_i = inv(M_i)*VC_mm
 % which is implemented as: VC_i = (M_i\M_o)*VC_o
