@@ -1,4 +1,4 @@
-function out = spm_run_coreg_hb(job,silentMode)
+function [out, M] = spm_run_coreg_hb(job, silentMode, RegMatrix)
 % SPM job execution function
 % takes a harvested job data structure and call SPM functions to perform
 % computations on the data.
@@ -6,31 +6,27 @@ function out = spm_run_coreg_hb(job,silentMode)
 % job    - harvested job data structure (see matlabbatch help)
 % Output:
 % out    - computation results, usually a struct variable.
+% M      - estimated registration; n/a if job is without field 'eoptions'
 %__________________________________________________________________________
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % $Id: spm_run_coreg.m 5956 2014-04-16 14:34:25Z guillaume $
 
-
-
-
-
-
-
 if ~exist('silentMode','var') || isempty(silentMode)
     silentMode = false;
 end
 
+if ~exist('RegMatrix','var') || isempty(RegMatrix)
+    RegMatrix = [];
+end
+
 % HB: 
-% [July 2017] added option to write resulting file in a different locations than
+% [jul 2017] added option to write resulting file in a different locations than
 % default. 
-% [Aug 2021] added option for silentMode rnning (skipping SPM banners).
+% [aug 2021] added option for silentMode rnning (skipping SPM banners).
+% [dec 2025] added option to input precomputed registration matrix.
 %
-% Hamid Behjat.  
-
-
-
-
+% h behjat 
 
 if ~isfield(job,'other') || isempty(job.other{1}), job.other = {}; end
 PO = [job.source(:); job.other(:)];
@@ -38,10 +34,13 @@ PO = spm_select('expand',PO);
 
 %-Coregister
 %--------------------------------------------------------------------------
-if isfield(job,'eoptions')
-    x  = spm_coreg(char(job.ref), char(job.source), job.eoptions);
-    
-    M  = spm_matrix(x);
+if isfield(job, 'eoptions')
+    if isempty(RegMatrix)
+        x  = spm_coreg(char(job.ref), char(job.source), job.eoptions);
+        M  = spm_matrix(x);
+    else
+        M = RegMatrix;
+    end
     MM = zeros(4,4,numel(PO));
     for j=1:numel(PO)
         MM(:,:,j) = spm_get_space(PO{j});
@@ -49,6 +48,8 @@ if isfield(job,'eoptions')
     for j=1:numel(PO)
         spm_get_space(PO{j}, M\MM(:,:,j));
     end
+else
+    M = []; % HB
 end
 
 %-Reslice
