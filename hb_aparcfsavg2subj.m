@@ -139,7 +139,7 @@ if RunParcellation
             names.ParcName, ...
             num2str(opts.JustGetSurfaceParcellation));
 
-        runcmd(cmd,'Error in aparcfsavg2subj.sh.');
+        runcmd(cmd,'error in aparcfsavg2subj.sh.');
 
         d_niftitmp = fullfile(opts.dirs.subjs,opts.ID,'HB',[n_src,'.nii']);
 
@@ -174,6 +174,8 @@ if RunParcellation
         %-Prepare ribbon---------------------------------------------------
         f_rib = strrep(f_src,'.nii',...
             '.ref_ribbon_extracted_from_mri_ribbon_mgz.nii');
+        
+        parcinfo.f_rib = f_rib;
 
         fprintf('\n..Preparing %s ribbon..',hemi{:});
 
@@ -762,7 +764,9 @@ end
 %==========================================================================
 function runcmd(cmd,errmsg)
 [sts,log] = system(cmd);
-if sts==0
+chk1 = sts==0;
+chk2 = not(contains(log, 'error'));
+if and(chk1, chk2)
     return;
 end
 sprintf('*** system run command log: \n\n');
