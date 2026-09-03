@@ -6,8 +6,13 @@ addParameter(d,'JustGetFileList',false); % no gzip done
 addParameter(d,'ExcludeEndsWith',[]); % [*]
 addParameter(d,'opts',[]); % [**]
 addParameter(d,'UnzipGzipnii', false); % !!caution!! [***]
+addParameter(d,'Verbose', false);
 parse(d,varargin{:});
 opts = d.Results;
+
+if opts.Verbose
+    fprintf('\n.working on directory: %s\n', p);
+end
 
 opts = fixopts(opts);
 
@@ -67,7 +72,7 @@ for k=1:length(F)
     elseif fk.isdir
         ok = chkdir(fk.name);
         if ok
-            d = hb_nii_gzip_recursive(f, 'opts', opts);
+            d = hb_nii_gzip_recursive(f, 'opts', opts, 'Verbose', opts.Verbose);
             if not(isempty(d))
                 d = d';
                 if exist('files', 'var')
@@ -94,7 +99,7 @@ for k=1:length(F)
                 end
 
                 % gzip any nifti files in d_tmp, recursively if applicable
-                hb_nii_gzip_recursive(d_tmp, 'opts', opts);
+                hb_nii_gzip_recursive(d_tmp, 'opts', opts, 'Verbose', opts.Verbose);
 
                 % move files out of tmp folder
                 F_tmp = dir(d_tmp);
