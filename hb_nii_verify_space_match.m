@@ -1,26 +1,35 @@
-function [chk,h1,h2] = hb_nii_verify_space_match(f1,f2,varargin)
+function [sts, h1, h2] = hb_nii_verify_space_match(f1, f2, varargin)
 % HB_NII_VERIFY_SPACE_MATCH verifies match between two nifti files in terms
-% of their 3D dimension and coordinate space. That is, whether the two
-% vloumes are matched voxel-to-voxel in space. The two inputs can be either
+% of their 3D dimension and coordinate space. that is, whether the two
+% vloumes are matched voxel-to-voxel in space. the two inputs can be either
 % file paths or nifti headers.
 %
-% Note: If f1, f2, or both are 4D, the assumption is that all frames have a
+% note: if f1, f2, or both are 4D, the assumption is that all frames have a
 % matching header, and thus, only the first frame in the AD volume will be
 % checked.
 % 
-% Hamid Behjat
+% h behjat
 
 d = inputParser;
 addParameter(d,'DuplicateThenUnzip', false);
+addParameter(d,'ThrowError', false);
 parse(d,varargin{:});
 opts = d.Results;
 
 h1 = gethead(f1, opts.DuplicateThenUnzip);
 h2 = gethead(f2, opts.DuplicateThenUnzip);
 chk1 = isequal(h1.dim, h2.dim);
-chk2 = all(abs(h1.mat-h2.mat)<1e-6,'all');
-chk = chk1 && chk2;
-
+chk2 = all(abs(h1.mat-h2.mat)<1e-2,'all'); % diff <0.01 mm in each element
+sts = chk1 && chk2;
+if opts.ThrowError
+    if not(sts)
+        fprintf( ...
+            '\n.space mismatch bw files f1 & f2: \n..f1: %s \n..f2: %s', ...
+            h1.fname, ...
+            h2.fname);
+        error('mismatch between files');
+    end
+end
 end
 
 
