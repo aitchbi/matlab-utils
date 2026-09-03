@@ -1,4 +1,4 @@
-function [v,h] = hb_nii_load(f,varargin)
+function [v,h,N_frames] = hb_nii_load(f,varargin)
 %HB_NII_LOAD load nifti volume and header using external software. 
 
 d = inputParser;
@@ -8,10 +8,11 @@ addParameter(d,'FramesToLoad', []);
 addParameter(d,'HeaderType', 'spm');
 addParameter(d,'LoadAsVectors', false);
 addParameter(d,'DuplicateThenUnzip', false);
+addParameter(d,'Verbose', true);
 parse(d,varargin{:});
 opts = d.Results;
 
-assert(ischar(f),'Enter absolute address of nifti file.');
+assert(ischar(f),'enter absolute address of nifti file.');
 
 if endsWith(f,'.gz')
     if exist(f,'file')
@@ -21,7 +22,7 @@ if endsWith(f,'.gz')
     elseif exist(strrep(f,'.gz',''),'file')
         DELNONZIP = false;
     else
-        error('File missing: %s',f);
+        error('file missing: %s',f);
     end
    
 else
@@ -33,7 +34,7 @@ else
             f = dounzip(fgz, opts.DuplicateThenUnzip);
             DELNONZIP = true;
         else
-            error('File missing: %s',f);
+            error('file missing: %s',f);
         end
     end
 end
@@ -48,8 +49,12 @@ switch opts.HeaderType
     case 'spm'
         %assert(exist('spm_vol.m','file'),'"spm" package not in path.')
         h = spm_vol(f);
+        N_frames = length(h);
         if opts.JustGetHeader
             v = [];
+            if DELNONZIP
+                delete(f);
+            end
             return;
         end
         Nv = length(h);
@@ -88,10 +93,13 @@ switch opts.HeaderType
                     end
                 end
             else
-                fprintf('\n..Loading 4D nifti.. \n');
+                if opts.Verbose
+                    fprintf('\n..loading 4D nifti.. \n');
+                end
                 v = spm_read_vols(h);
                 if not(isequal(Nf,Nv))
                     v = v(:,:,:,frames);
+                    h = h(frames); % 2026.06.04
                 end
             end
         end
@@ -107,7 +115,9 @@ end
 function prgs(n,N)
 l = numel(num2str(N));
 if n==1
-    fprintf('\n..Loading 4D nifti.. ');
+    if opts.Verbose
+    fprintf('\n..loading 4D nifti.. ');
+    end
 else
     fprintf(repmat('\b',1,2*l+1),n);
 end
